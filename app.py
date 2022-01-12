@@ -32,6 +32,11 @@ def initialize_app():
     if not os.path.exists(settings.published_posts_file_location_full):
         open(settings.published_posts_file_location_full, 'a+').close()
 
+    if not os.path.exists(settings.secrets_location):
+        open(settings.secrets_location, 'a+').close()
+    
+    if not os.path.exists(settings.key_location):
+        open(settings.key_location, 'a+').close()
 
 
 

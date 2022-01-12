@@ -40,6 +40,8 @@ def app():
 
                         if media_accounts != None:
 
+                            st.markdown("**Media accounts**")
+
                             for media_account in media_accounts:
                                 media_accounts_list.append(media_account)
 
@@ -54,12 +56,14 @@ def app():
 
 
                                 with st.expander(media_display_name):
-                                    st.text_input(f"Key",f"{media_account_key}", None, None, "password")
-                                    st.text_input(f"Secret",f"{media_account_secret}", None, None, "password")  
+                                    if media_account_key != "":
+                                        st.text_input(f"Key",f"{media_account_key}", None, media_account["name"], 'password')
+                                    if media_account_secret != "":
+                                        st.text_input(f"Secret",f"{media_account_secret}", None, media_account["name"], 'password')  
                                     if media_account_access_key != "":
-                                        st.text_input(f"Access Key",f"{media_account_access_key}", None, None, "password")
+                                        st.text_input(f"Access Key",f"{media_account_access_key}", None, media_account["name"], 'password')
                                     if media_account_access_secret != "":
-                                        st.text_input(f"Access Secret",f"{media_account_access_secret}", None, None, "password")
+                                        st.text_input(f"Access Secret",f"{media_account_access_secret}", None, media_account["name"], 'password')
                         else:
                             st.text("No media accounts added")
 
