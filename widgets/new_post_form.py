@@ -7,7 +7,6 @@ from resources.utility import convert_strings_to_datetime
 from resources.config import settings_core
 from resources.posts import post
 
-
 settings = settings_core()
 
 
@@ -36,29 +35,28 @@ def app():
         ##### POST LOCATION
         st.write("Where would you like to post?")
 
-        with st.expander("Location"):
-            
-            for account in settings.media_accounts:
-                ## create new checkbox for each account
-                account_checkbox = st.checkbox(account['display_name'])
+        
+        ##### ACCOUNT SELECTION
+        def format_post_option(option=[]):
+            return option['display_name']
+
+        
+        media_accounts_checkboxes = st.multiselect("Select media accounts", settings.media_accounts, format_func=format_post_option)
+
+        #print(media_accounts_checkboxes)
 
 
-            # col1, col2, col3 = st.columns(3)
-            # with col1:
-            #     to_discord = st.checkbox('Discord')
-            # with col2: 
-            #     to_twitter = st.checkbox('Twitter')
-            # with col3:
-            #     to_reddit = st.checkbox('Reddit')
 
-
-        uploaded_file_list = []
 
         
 
         ##### FILE UPLOAD
+        uploaded_file_list = []
+
         uploaded_files = st.file_uploader("Upload attachments", accept_multiple_files=True)
+
         st.info("Files that are uploaded first get put first in order when published.")
+        
         if len(uploaded_files) > 0:
         
             ##### FOR UPLOADED FILES
@@ -86,8 +84,6 @@ def app():
                     print(f"File {chosen_file_name} already exists. File has been referenced rather than saved.")
                     uploaded_file_list.append(chosen_file_name)
 
-        
-
 
         ##### SUBMIT BUTTON
         submitted = st.form_submit_button("Submit")
@@ -103,12 +99,10 @@ def app():
 
                 ##### CHECK FOR MEDIAS SELECTED
                 desired_medias = []
-                if to_discord:
-                    desired_medias.append('discord')
-                if to_twitter:
-                    desired_medias.append('twitter')
-                if to_reddit:
-                    desired_medias.append('reddit')
+
+                if len(media_accounts_checkboxes) > 0:
+                    for media_account in media_accounts_checkboxes:
+                        desired_medias.append(media_account['name'])
                 
                 ##### CREATE POST OBJECT
                 desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
