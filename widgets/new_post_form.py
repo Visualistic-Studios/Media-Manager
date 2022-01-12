@@ -51,7 +51,7 @@ def app():
         
 
         ##### FILE UPLOAD
-        uploaded_file_list = []
+        uploaded_file_list = None
 
         uploaded_files = st.file_uploader("Upload attachments", accept_multiple_files=True)
 
@@ -103,9 +103,17 @@ def app():
                 if len(media_accounts_checkboxes) > 0:
                     for media_account in media_accounts_checkboxes:
                         desired_medias.append(media_account['name'])
+
+                print(uploaded_file_list)
+
+                if uploaded_file_list:
                 
-                ##### CREATE POST OBJECT
-                desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
+                    ##### CREATE POST OBJECT
+                    desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
+                else:
+                    
+                    ##### CREATE POST OBJECT
+                    desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias)
                 
                 ##### SAVE POST OBJECT
                 desired_post.save_as_scheduled()

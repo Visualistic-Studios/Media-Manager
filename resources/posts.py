@@ -39,7 +39,10 @@ class post:
     ##### DATA TO LIST
     def data_to_list(self):
         """Returns a list of post data"""
-        return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.datetime_to_post}|-|{self.medias_to_post_on}|-|{self.attachments}"
+        if self.attachments:
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.datetime_to_post}|-|{self.medias_to_post_on}|-|{self.attachments}"
+        else:
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.datetime_to_post}|-|{self.medias_to_post_on}|-|"
 
 
     ##### CREATES FILE LIST
@@ -73,13 +76,18 @@ class post:
         if self.attachments:
             ## load attachments
             attachment_list = []
+            print(len(self.attachments))
             for attachment in self.attachments:
-                attachment_clean = attachment.replace("'", "")
-                attachment_clean = attachment_clean.strip("\n")
-                attachment_clean = attachment_clean.strip("][")
-                print (attachment_clean)
-                attachment_path = settings.full_uploaded_media_dir + "/" + attachment_clean
-                attachment_list.append(open(attachment_path, 'rb'))
+                if not attachment == "[]" or not attachment == "['']" or not attachment == "['\\n']" or not attachment == "\n" or not attachment == "":
+                    attachment_clean = attachment.replace("'", "")
+                    attachment_clean = attachment_clean.strip("\n")
+                    attachment_clean = attachment_clean.strip("][")
+                    print (attachment_clean)
+                    if not attachment_clean == "[]" or not attachment_clean == "['']" or not attachment_clean == "['\\n']" or not str(attachment_clean) == "\n":
+                        attachment_path = settings.full_uploaded_media_dir + "/" + attachment_clean
+                        ## I hate this code replace it.
+                        if not attachment_path == settings.full_uploaded_media_dir + "/":
+                            attachment_list.append(open(attachment_path, 'rb'))
             return attachment_list
         else:
             return None
@@ -91,12 +99,13 @@ class post:
         Returns a list of image attachments
         """
         image_attachments = []
-        for attachment in self.attachments:
-            attachment_path = self.get_attachment_path(attachment)
-            if os.path.isfile(attachment_path):
-                attachment_type = attachment_path.split('.')[-1]
-                if attachment_type in settings.supported_image_types:
-                    image_attachments.append(attachment_path)
+        if self.attachments:
+            for attachment in self.attachments:
+                attachment_path = self.get_attachment_path(attachment)
+                if os.path.isfile(attachment_path):
+                    attachment_type = attachment_path.split('.')[-1]
+                    if attachment_type in settings.supported_image_types:
+                        image_attachments.append(attachment_path)
         return image_attachments
 
 
@@ -105,12 +114,13 @@ class post:
         Returns a list of video attachments
         """
         video_attachments = []
-        for attachment in self.attachments:
-            attachment_path = self.get_attachment_path(attachment)
-            if os.path.isfile(attachment_path):
-                attachment_type = attachment_path.split('.')[-1]
-                if attachment_type in settings.supported_video_types:
-                    video_attachments.append(attachment_path)
+        if self.attachments:
+            for attachment in self.attachments:
+                attachment_path = self.get_attachment_path(attachment)
+                if os.path.isfile(attachment_path):
+                    attachment_type = attachment_path.split('.')[-1]
+                    if attachment_type in settings.supported_video_types:
+                        video_attachments.append(attachment_path)
         return video_attachments
 
 
