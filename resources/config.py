@@ -5,6 +5,8 @@ import pathlib
 import configparser
 
 
+
+
 current_path = str(pathlib.Path(__file__).parent.absolute()) + "/"                   # | # CURRENT DIRECTORY
 current_path = current_path.replace("resources/", "")                                              # | # REAL DIR
 configpath = str(current_path) + "settings.cfg"                                      # | # CONFIG FILE PATH
@@ -13,8 +15,6 @@ cfg.read(configpath)                                                            
 
 
 
-     
-     
 
 
 
@@ -61,8 +61,9 @@ class settings_core:
 
         self.media_accounts = string_to_list_of_dictionaries(self, self.get_setting_value("accounts","media_accounts"))
 
-        self.secrets_location = cfg.get("accounts","secrets_location")
-        self.key_location = cfg.get("accounts","key_location")
+
+
+
 
         ##### STORAGE
         self.published_posts_file_location = cfg.get("storage","posts_file")
@@ -74,6 +75,16 @@ class settings_core:
         self.uploaded_media_dir = cfg.get("storage","uploaded_media_dir")
         self.full_uploaded_media_dir = current_path + self.uploaded_media_dir
 
+
+        ##### ENCRYPTION
+        self.secrets_location = cfg.get("accounts","secrets_location")
+        self.key_location = cfg.get("accounts","key_location")
+
+        # read key from a file  
+        def get_key(location=self.key_location):
+            with open(location, "r") as f:
+                key = f.read()
+            return key
         self.encryption_key = get_key()
 
 
@@ -150,4 +161,7 @@ class settings_core:
                 accounts.remove(account)
         # save new accounts
         self.set_setting_value("app","media_accounts",str(accounts))
+
+    
+
 
