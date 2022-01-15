@@ -12,7 +12,7 @@ settings = settings_core()
 
 def app():
 
-       ##### NEW POSTS FORM
+    ##### NEW POSTS FORM
     with st.form("new_post_form"):
         st.markdown("#### Create a new post")
 
@@ -43,13 +43,6 @@ def app():
         
         media_accounts_checkboxes = st.multiselect("Select media accounts", settings.media_accounts, format_func=format_post_option)
 
-        #print(media_accounts_checkboxes)
-
-
-
-
-        
-
         ##### FILE UPLOAD
         uploaded_file_list = None
 
@@ -66,9 +59,6 @@ def app():
 
                 ## append datetime to file name to make it unique
                 chosen_file_name = datetime.now().strftime("%Y-%m-%M-%S") + "-" + your_file.name
-
-                ## create a path to the file
-
 
                 #chosen_file_name = str(hash(your_file.getvalue())) + "." + your_file.name.split(".")[-1]
                 new_file_path = os.path.join(settings.uploaded_media_dir, chosen_file_name)
@@ -111,7 +101,7 @@ def app():
                     ##### CREATE POST OBJECT
                     desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
                 else:
-                    
+
                     ##### CREATE POST OBJECT
                     desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias)
                 
