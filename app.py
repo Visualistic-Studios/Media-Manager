@@ -7,12 +7,15 @@ import os
 from resources.page_manager import PageManager
 from resources.config import settings_core
 from pages import new_posts, settings_page
+from daemons.discord_daemon import DiscordDaemon
+
 
 
 settings = settings_core()
 app = PageManager()
-
-
+# print('starting discord daemon')
+# discord_daemon = DiscordDaemon(settings.)
+# print('discord daemon started')
 
 def initialize_app():
 
@@ -32,8 +35,8 @@ def initialize_app():
     if not os.path.exists(settings.published_posts_file_location_full):
         open(settings.published_posts_file_location_full, 'a+').close()
 
-    if not os.path.exists(settings.secrets_location):
-        open(settings.secrets_location, 'a+').close()
+    # if not os.path.exists(settings.secrets_location):
+    #     open(settings.secrets_location, 'a+').close()
     
     if not os.path.exists(settings.key_location):
         open(settings.key_location, 'a+').close()
