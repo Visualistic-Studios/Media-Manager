@@ -68,10 +68,11 @@ class Account:
 
     ########## REGISTER
     #####
-    def register(display_name,key, secret, access_key=None, access_secret=None, media_platform=None):
+    def register(self, display_name, key, secret, access_key=None, access_secret=None, media_platform=None):
         # convert data to dictioinary
         data = {
             "display_name": display_name,
+            "name": self.data['name'],
             "key": key,
             "secret": secret,
             "access_key": access_key,
@@ -79,17 +80,17 @@ class Account:
             "media_platform": media_platform
         }
 
-        # convert data to list
-        data_list = self.data_to_list(data)
+        accounts = settings.media_accounts
+        accounts.append(data)
+        # save new accounts
+        settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
 
-        # write data to file
-        with open(f"{settings.secrets_location}.txt", "w") as f:
-            f.write(data_list)
+
         
 
     ########## UPDATE
     #####
-    def update(self, display_name, key, secret, access_key=None, access_secret=None, media_platform=None):
+    def update(self, display_name=None, key=None, secret=None, access_key=None, access_secret=None, media_platform=None):
         # get current accounts and add new one
         accounts = settings.media_accounts
         for account in accounts:

@@ -14,6 +14,7 @@ def app():
     settings_file = open(settings.current_path + "settings.cfg", "r")
     sections = settings.get_all_setting_categories()
     setting_buttons_dict = {}
+    new_account = {}
 
     ##### SETTINGS FORM
     with st.form("Settings"):
@@ -71,8 +72,26 @@ def app():
                                     media_account_button_dict['name'] = media_account_name
                                     media_account_button_list.append(media_account_button_dict)
 
+                                                # when a button is pressed create an expander
+                            with st.expander("Register New Account"):
+                                new_account["name"] = st.text_input("Unique name", "", None,key="new_account_name") 
+                                new_account["display_name"] = st.text_input("Display name", "", None, key="new_account_display_name")
+                                new_account['key'] = st.text_input(f"Key",f"", None, new_account["name"], 'password')
+                                new_account['secret'] = st.text_input(f"Secret",f"", None, new_account["name"], 'password')  
+                                new_account['access_key'] = st.text_input(f"Access Key",f"", None, new_account["name"], 'password')
+                                new_account['access_secret'] = st.text_input(f"Access Secret",f"", None, new_account["name"], 'password')
+
+                                ## Find the right multiselection for media platform
+                                media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
+                                media_selected_index = 0 
+
+                                # create 3 options in a select box
+                                new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
+
+
                         else:
                             st.text("No media accounts added")
+                        
 
 
         ##### SUBMIT BUTTON
@@ -128,4 +147,11 @@ def app():
 
                 except Exception as e:
                     pass
+                
+                try:
+                    if new_account['name'] != "":
+                        account_to_add = Account(name=new_account['name'])
+                        account_to_add.register(display_name=new_account['display_name'], key=new_account['key'], secret=new_account['secret'], access_key=new_account['access_key'], access_secret=new_account['access_secret'], media_platform=new_account['media_platform'])
 
+                except Exception as e:
+                    print(e)
