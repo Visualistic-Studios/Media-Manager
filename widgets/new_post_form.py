@@ -40,8 +40,10 @@ def app():
         def format_post_option(option=[]):
             return option['display_name']
 
-        
-        media_accounts_checkboxes = st.multiselect("Select media accounts", settings.media_accounts, format_func=format_post_option)
+        if settings.media_accounts:
+            media_accounts_checkboxes = st.multiselect("Select media accounts", settings.media_accounts, format_func=format_post_option)
+        else:
+            st.markdown("> No media accounts found -- Please add at least 1 in settings")
 
         ##### FILE UPLOAD
         uploaded_file_list = None

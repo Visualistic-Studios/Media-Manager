@@ -73,6 +73,12 @@ def app():
                                     media_account_button_list.append(media_account_button_dict)
 
                                                 # when a button is pressed create an expander
+
+
+
+                        else:
+                            st.text("No media accounts added")
+                            
                             with st.expander("Register New Account"):
                                 new_account["name"] = st.text_input("Unique name", "", None,key="new_account_name") 
                                 new_account["display_name"] = st.text_input("Display name", "", None, key="new_account_display_name")
@@ -87,10 +93,6 @@ def app():
 
                                 # create 3 options in a select box
                                 new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
-
-
-                        else:
-                            st.text("No media accounts added")
                         
 
 

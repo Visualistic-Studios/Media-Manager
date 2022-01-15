@@ -81,10 +81,12 @@ class Account:
         }
 
         accounts = settings.media_accounts
-        accounts.append(data)
-        # save new accounts
-        settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
-
+        if accounts:
+            accounts.append(data)
+            # save new accounts
+            settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
+        else:
+            settings.write_encrypted_setting("accounts","media_accounts",str([data]))
 
         
 

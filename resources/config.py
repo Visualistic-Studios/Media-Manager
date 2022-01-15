@@ -58,7 +58,10 @@ class settings_core:
 
         ##### ACCOUNTS
         if self.crypt_setup: 
-            self.media_accounts = string_to_list_of_dictionaries(self.read_encrypted_setting("accounts", "media_accounts"))
+            if cfg.get("accounts","media_accounts") != "None":
+                self.media_accounts = string_to_list_of_dictionaries(self.read_encrypted_setting("accounts", "media_accounts"))
+            else:
+                self.media_accounts = None
         else:
             self.media_accounts = None
 
