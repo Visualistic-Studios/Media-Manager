@@ -4,18 +4,14 @@ from dotenv import load_dotenv
 import pathlib
 import configparser
 
-
-
+import resources.crypt as crypt
+from resources.utility import string_to_list_of_dictionaries
 
 current_path = str(pathlib.Path(__file__).parent.absolute()) + "/"                   # | # CURRENT DIRECTORY
 current_path = current_path.replace("resources/", "")                                              # | # REAL DIR
 configpath = str(current_path) + "settings.cfg"                                      # | # CONFIG FILE PATH
 cfg = configparser.RawConfigParser()                                                 # | # CREATE CONFIG OBJECT
 cfg.read(configpath)                                                                 # | # READ CONFIG FILE 
-
-
-
-
 
 
 
@@ -28,41 +24,9 @@ class settings_core:
 
 
         ##### ALL
-
-        self.current_path = str(pathlib.Path(__file__).parent.absolute()) + "/"                     # | # CURRENT DIRECTORY
-        self.current_path = self.current_path.replace("resources/", "")                                              # | # REAL DIR
-        self.saved_path = str(self.current_path) + "saved/"                                               # | # REAL DIR
-
-
-
-        ##### KEYS
-
-
-
-        # string to list of dictionaries
-        def string_to_list_of_dictionaries(self,string):
-
-            # split string into list of dictionaries
-            string = string.replace("},", "}|--|")
-            list = string.split("|--|")
-
-            list_of_dictionaries = []
-
-            # make dictionary string a dictionary object
-            for string_dict in list:
-                string_dict = string_dict.replace("[", "") # remove [
-                string_dict = string_dict.replace("]", "") # remove ]
-                list_of_dictionaries.append(eval(string_dict))
-
-            return list_of_dictionaries
-
-        self.safe_storage = cfg.get("storage","safe")                                                 # | # SAFE STORAGE
-
-
-        self.media_accounts = string_to_list_of_dictionaries(self, self.get_setting_value("accounts","media_accounts"))
-
-
-
+        self.current_path = str(pathlib.Path(__file__).parent.absolute()) + "/"                     
+        self.current_path = self.current_path.replace("resources/", "")                             
+        self.saved_path = str(self.current_path) + "saved/"                                       
 
 
         ##### STORAGE
@@ -77,21 +41,35 @@ class settings_core:
 
 
         ##### ENCRYPTION
-        self.secrets_location = cfg.get("accounts","secrets_location")
-        self.key_location = cfg.get("accounts","key_location")
+        self.key_location = cfg.get("encryption","key_location")
 
-        # read key from a file  
-        def get_key(location=self.key_location):
-            with open(location, "r") as f:
-                key = f.read()
-            return key
-        self.encryption_key = get_key()
+        ## Has encryption been setup?
+        if os.path.isfile(self.key_location):
+            # Yes
+            self.encryption_key = crypt.get_key(self.key_location)
 
+            self.crypt_setup = True
+        else:
+            self.crypt_setup = False
+            # No
+            print('user needs to setup initial key')
+        
+
+
+        ##### ACCOUNTS
+        if self.crypt_setup: 
+            self.media_accounts = string_to_list_of_dictionaries(self.read_encrypted_setting("accounts", "media_accounts"))
+        else:
+            self.media_accounts = None
+
+
+        self.supported_media_platforms = cfg.get("accounts","supported_media_platforms").split(",")
 
         ##### APPLICATION
         self.no_posts_title = cfg.get("app","no_posts_title")
         self.no_posts_description = cfg.get("app","no_posts_description")
         self.post_not_scheduled_for_reason_time_in_past = cfg.get("app","post_not_scheduled_for_reason_time_in_past")
+
 
         ##### PERFORMANCE
         self.posts_cache_time = float(cfg.get("performance","posts_cache_time"))
@@ -101,6 +79,40 @@ class settings_core:
         self.supported_image_types = cfg.get("media","supported_image_types").split(",")
         self.supported_video_types = cfg.get("media","supported_video_types").split(",")
 
+
+        #print('reading encrypted data:\n------------------------------------------------')
+        #if self.crypt_setup: 
+        #    print(self.media_accounts)
+        #    print(type(self.media_accounts))
+        
+        #print('----------------------------------------------') 
+        
+
+    def reload_config(self):
+        cfg.read(configpath)
+
+
+    def read_encrypted_setting(self, category, setting):
+        if self.crypt_setup:
+            key = self.encryption_key
+            encrypted_setting = self.get_setting_value(category, setting)
+            fernet = crypt.get_fernet(key)
+            setting = crypt.decrypt(fernet, encrypted_setting.encode())
+            return setting
+        else:
+            print('crypt not setup')
+            return None
+
+    def write_encrypted_setting(self, category, setting, value):
+        if self.crypt_setup:
+            key = self.encryption_key
+            fernet = crypt.get_fernet(key)
+            value = crypt.encrypt(fernet, str(value).encode())
+            self.set_setting_value(category, setting, value.decode())
+            self.reload_config()
+        else:
+            print('crypt not setup')
+            return None
 
     ##### GET ALL SETTINGS CATEGORIES
     def get_all_setting_categories(self):
@@ -126,6 +138,8 @@ class settings_core:
         with open(configpath, 'w') as configfile:
             cfg.write(configfile)
 
+        self.reload_config()
+
 
 
     ##### CREATE NEW SETTING
@@ -134,6 +148,8 @@ class settings_core:
         cfg.set(category,setting,value)
         with open(configpath, 'w') as configfile:
             cfg.write(configfile)
+        
+        self.reload_config()
     
 
     ##### CREATE NEW CATEGORY
@@ -141,27 +157,6 @@ class settings_core:
         cfg.add_section(category)
         with open(configpath, 'w') as configfile:
             cfg.write(configfile)
-
-
-    ##### REGISTERS A NEW SOCIAL MEDIA ACCOUNT    
-    def register_media_account(self, display_name, name, key, secret, token, token_secret):
-        # get current accounts and add new one
-        accounts = self.media_accounts
-        accounts.append({"display_name":display_name, "name":name, "key":key, "secret":secret, "token":token, "token_secret":token_secret})
-        # save new accounts
-        self.set_setting_value("app","media_accounts",str(accounts))
-
-
-    ##### REMOVES A SOCIAL MEDIA ACCOUNT
-    def remove_media_account(self, name):
-        # get current accounts and remove one
-        accounts = self.media_accounts
-        for account in accounts:
-            if account["name"] == name:
-                accounts.remove(account)
-        # save new accounts
-        self.set_setting_value("app","media_accounts",str(accounts))
-
-    
-
+        
+        self.reload_config()
 

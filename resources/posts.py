@@ -76,13 +76,11 @@ class post:
         if self.attachments:
             ## load attachments
             attachment_list = []
-            print(len(self.attachments))
             for attachment in self.attachments:
                 if not attachment == "[]" or not attachment == "['']" or not attachment == "['\\n']" or not attachment == "\n" or not attachment == "":
                     attachment_clean = attachment.replace("'", "")
                     attachment_clean = attachment_clean.strip("\n")
                     attachment_clean = attachment_clean.strip("][")
-                    print (attachment_clean)
                     if not attachment_clean == "[]" or not attachment_clean == "['']" or not attachment_clean == "['\\n']" or not str(attachment_clean) == "\n":
                         attachment_path = settings.full_uploaded_media_dir + "/" + attachment_clean
                         ## I hate this code replace it.
@@ -133,7 +131,7 @@ class post:
                     localfile.write(str(self.data_to_list()).replace('\n', '|__NEWLINE__|') + '\n')
                     localfile.close()
             except Exception as e:
-                print(e)      
+                print("Exception while running save as scheduled: ", e)      
             return None
 
 
@@ -146,7 +144,7 @@ class post:
                 localfile.close()
                 print('logged post')
         except Exception as e:
-            print(e)      
+            print("Exception while running save as published: ", e)      
         return None
 
 
@@ -180,7 +178,7 @@ class post:
                         continue
 
         except Exception as e:
-            print(e)
+            print("Exception while running remove from scheduled: ", e)
             return None
 
 
@@ -230,7 +228,7 @@ def get_all_published_posts():
                 print('no posts found')
                 return None
     except:
-        print(e)
+        print("Exception while running get all published: ", e)
         return None
     return post_data
 
@@ -249,13 +247,13 @@ def get_all_scheduled_posts():
                     temp_post = create_post_object_from_string(line)
                     post_data.append(temp_post)
             else:
-                print(e)
+                print("Exception while running get all scheduled: ", e)
                 return None
         else:
-            print(e)
+            print("Exception while running get all scheduled: ", e)
             return None
     except Exception as e:
-        print(e)
+        print("Exception while running get all scheduled: ", e)
         return None
     return post_data
 
