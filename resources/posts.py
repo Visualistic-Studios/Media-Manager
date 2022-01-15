@@ -5,6 +5,7 @@ import streamlit as st
 from datetime import datetime, date
 from resources.config import settings_core
 from resources.utility import string_to_list, convert_strings_to_datetime
+import resources.crypt as crypt
 settings = settings_core()
 
 
@@ -128,7 +129,11 @@ class post:
             try:
                 localfile = open(settings.scheduled_posts_file_location_full, 'a+')
                 if localfile:
-                    localfile.write(str(self.data_to_list()).replace('\n', '|__NEWLINE__|') + '\n')
+                    value_to_write = str(self.data_to_list()).replace('\n', '|__NEWLINE__|')
+                    key = settings.encryption_key
+                    fernet = crypt.get_fernet(key)
+                    value_to_write = crypt.encrypt(fernet, str(value_to_write).encode())
+                    localfile.write(value_to_write.decode() + '\n')
                     localfile.close()
             except Exception as e:
                 print("Exception while running save as scheduled: ", e)      
@@ -142,7 +147,6 @@ class post:
             if localfile:
                 localfile.write(str(self.data_to_list()) + '\n')
                 localfile.close()
-                print('logged post')
         except Exception as e:
             print("Exception while running save as published: ", e)      
         return None
@@ -157,18 +161,26 @@ class post:
                 lines = localfile.readlines()
                 localfile.close()
                 for line in lines:
+                    
+                    ## Clean & Decrypt Line
+                    line_clean = line.replace('\n', '')
+                    line_clean = line_clean.encode()
+                    key = settings.encryption_key
+                    fernet = crypt.get_fernet(key)
+                    line_clean = crypt.decrypt(fernet, line_clean)
 
-                    line_title = line.split('|-|')[0]
-                    line_description = line.split('|-|')[1].replace('|__NEWLINE__|', '\n')
-                    line_link = line.split('|-|')[2]
-                    line_datetime = line.split('|-|')[3]
-                    line_date = line.split('|-|')[3].split(' ')[0]
-                    line_time = line.split('|-|')[3].split(' ')[1]
-                    line_medias = string_to_list(line.split('|-|')[4])
+                    ## Parse into Data
+                    line_clean_title = line_clean.split('|-|')[0]
+                    line_clean_description = line_clean.split('|-|')[1].replace('|__NEWLINE__|', '\n')
+                    line_clean_link = line_clean.split('|-|')[2]
+                    line_clean_datetime = line_clean.split('|-|')[3]
+                    line_clean_date = line_clean.split('|-|')[3].split(' ')[0]
+                    line_clean_time = line_clean.split('|-|')[3].split(' ')[1]
+                    line_clean_medias = string_to_list(line_clean.split('|-|')[4])
 
-                    ##### IF DATA MATCHES
-                    if line_title == self.title and line_description == self.description and line_link == self.link and line_date == self.date_to_post and line_time == self.time_to_post and line_date == self.date_to_post and line_time == self.time_to_post and line_medias == self.medias_to_post_on:
-                 
+                    ## If you find a match in the file, remove it
+                    if line_clean_title == self.title and line_clean_description == self.description and line_clean_link == self.link and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post and line_clean_medias == self.medias_to_post_on:
+                        print('removing line: ', line)
                         lines.remove(line)
                         localfile = open(settings.scheduled_posts_file_location_full, 'w')
                         localfile.writelines(lines)
@@ -187,6 +199,14 @@ class post:
 #####
 def create_post_object_from_string(line):
 
+    value = line.encode()
+    key = settings.encryption_key
+    fernet = crypt.get_fernet(key)
+    
+    decrypted_line = crypt.decrypt(fernet, value)
+
+    line = decrypted_line
+
     ##### SPLIT LINE INTO LIST
     line = line.split('|-|')
     date_time_array = line[3].split(' ')
@@ -202,10 +222,13 @@ def create_post_object_from_string(line):
 
     ##### CREATE MEDIA / ATTACHMENT OBJECT
     ##### CREATE SCHEDULED POST
+    post_object = None
     try: 
         if line[5]:
             attachments = string_to_list(line[5])
             post_object = post(line[0], line[1], line[2], date, time, string_to_list(line[4]),attachments)
+        else:
+            post_object = post(line[0], line[1], line[2], date, time, string_to_list(line[4]))
     except:
         attachments = None
         post_object = post(line[0], line[1], line[2], date, time, string_to_list(line[4]))
@@ -215,7 +238,7 @@ def create_post_object_from_string(line):
 
 
 ########## GET ALL POSTS
-#####
+##### (not currently working with encryption)
 def get_all_published_posts():
     post_data = []
     try:
@@ -245,7 +268,10 @@ def get_all_scheduled_posts():
             if localfile:
                 for line in localfile:
                     temp_post = create_post_object_from_string(line)
-                    post_data.append(temp_post)
+                    if temp_post:
+                        post_data.append(temp_post)
+                    else:
+                        print('invalid post found')
             else:
                 print("Exception while running get all scheduled: ", e)
                 return None
