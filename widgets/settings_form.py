@@ -53,6 +53,7 @@ def app():
     
 
                                 with st.expander(media_display_name):
+                                    media_account_button_dict['request_removal'] = st.checkbox("Remove")
                                     media_account_button_dict["display_name"] = st.text_input("Display name", media_display_name)
                                     media_account_button_dict['key'] = st.text_input(f"Key",f"{media_account_key}", None, media_account["name"], 'password')
                                     media_account_button_dict['secret'] = st.text_input(f"Secret",f"{media_account_secret}", None, media_account["name"], 'password')  
@@ -78,22 +79,22 @@ def app():
 
                         else:
                             st.text("No media accounts added")
-                            
-                            with st.expander("Register New Account"):
-                                new_account["name"] = st.text_input("Unique name", "", None,key="new_account_name") 
-                                new_account["display_name"] = st.text_input("Display name", "", None, key="new_account_display_name")
-                                new_account['key'] = st.text_input(f"Key",f"", None, new_account["name"], 'password')
-                                new_account['secret'] = st.text_input(f"Secret",f"", None, new_account["name"], 'password')  
-                                new_account['access_key'] = st.text_input(f"Access Key",f"", None, new_account["name"], 'password')
-                                new_account['access_secret'] = st.text_input(f"Access Secret",f"", None, new_account["name"], 'password')
 
-                                ## Find the right multiselection for media platform
-                                media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
-                                media_selected_index = 0 
+                        with st.expander("Register New Account"):
+                            new_account["name"] = st.text_input("Unique name", "", None,key="new_account_name") 
+                            new_account["display_name"] = st.text_input("Display name", "", None, key="new_account_display_name")
+                            new_account['key'] = st.text_input(f"Key",f"", None, new_account["name"], 'password')
+                            new_account['secret'] = st.text_input(f"Secret",f"", None, new_account["name"], 'password')  
+                            new_account['access_key'] = st.text_input(f"Access Key",f"", None, new_account["name"], 'password')
+                            new_account['access_secret'] = st.text_input(f"Access Secret",f"", None, new_account["name"], 'password')
 
-                                # create 3 options in a select box
-                                new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
-                        
+                            ## Find the right multiselection for media platform
+                            media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
+                            media_selected_index = 0 
+
+                            # create 3 options in a select box
+                            new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
+                    
 
 
         ##### SUBMIT BUTTON
@@ -130,6 +131,8 @@ def app():
                             "media_platform": button["media_platform"]
                         }
 
+                        button_request_removal = media_account_button_dict["request_removal"]
+
                         found_difference = False
 
                         for account in settings.media_accounts:
@@ -139,6 +142,12 @@ def app():
                                     if button_data[key] != account[key]:
                                         found_difference = True
                                         st.markdown(button['name'] + ": " + f"`Setting {key} has changed`")
+
+                        
+                        if button_request_removal:
+                            account_to_update = Account(name=button_data["name"])
+                            account_to_update.remove()
+
 
                         ## If changes in account details, update the settings file
                         if found_difference:

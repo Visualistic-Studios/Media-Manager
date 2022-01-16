@@ -110,16 +110,30 @@ class Account:
     
     ########## REMOVE
     #####
-    def remove(self, name):
-        # get current accounts and remove one
-        accounts = self.media_accounts
-        for account in accounts:
-            if account['name'] == name:
-                accounts.remove(account)
-                break
+    def remove(self):
+        """
+        Remove Account from Data. Requires the account name is set.
+        """
+        try:
+            # Get accounts from settings and loop to find the account to remove
+            accounts = settings.media_accounts
+            for account in accounts:
+                if account['name'] == self.data['name']:
+                    accounts.remove(account)
+                    break
 
-        ## Save New Accounts
-        self.write_encrypted_setting("accounts","media_accounts",str(accounts))
+            ## Save New Accounts
+            if len(accounts) > 0:
+                settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
+            else:
+                settings.set_setting_value("accounts","media_accounts","None")
+            print('accounts removed')
+
+            return True
+            
+        except Exception as e:
+            print(e)
+            return False
 
     
 
