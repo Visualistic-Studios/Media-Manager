@@ -4,14 +4,6 @@ from resources.utility import string_to_list_of_dictionaries
 
 settings = settings_core()
 
-
-# need to have a proper setup for accounts. the data in the posts class is fine, it's only used as an id to tie to the accounts here. 
-
-# Account secrets need to be encrypted
-
-# need to basically move the setting "media accounts" to this class and give it an enumeration or id or something for which social media it is using. 
-
-
 ########## ACCOUNT CLASS
 
 class Account:
