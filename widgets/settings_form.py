@@ -147,6 +147,7 @@ def app():
                         if button_request_removal:
                             account_to_update = Account(name=button_data["name"])
                             account_to_update.remove()
+                            st.success("Account removed. Please Restart the Application")
 
 
                         ## If changes in account details, update the settings file
@@ -163,6 +164,7 @@ def app():
                     if new_account['name'] != "":
                         account_to_add = Account(name=new_account['name'])
                         account_to_add.register(display_name=new_account['display_name'], key=new_account['key'], secret=new_account['secret'], access_key=new_account['access_key'], access_secret=new_account['access_secret'], media_platform=new_account['media_platform'])
+                        st.success("Account added. Please Restart the Application")
 
                 except Exception as e:
                     print(e)
