@@ -53,7 +53,7 @@ def app():
     
 
                                 with st.expander(media_display_name):
-                                    media_account_button_dict['request_removal'] = st.checkbox("Remove")
+                                    media_account_button_dict['request_removal'] = st.checkbox("Remove", key=f"Remove_{media_account_name}")
                                     media_account_button_dict["display_name"] = st.text_input("Display name", media_display_name)
                                     media_account_button_dict['key'] = st.text_input(f"Key",f"{media_account_key}", None, media_account["name"], 'password')
                                     media_account_button_dict['secret'] = st.text_input(f"Secret",f"{media_account_secret}", None, media_account["name"], 'password')  
