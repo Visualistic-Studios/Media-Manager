@@ -39,7 +39,7 @@ configpath = str(current_path) + "settings.cfg"
 
 def register_first_time_setup():
     try: 
-        open(current_path + "saved/first_time_setup.txt", 'a+').close()
+        open(current_path + "first_time_setup.txt", 'a+').close()
         print('registered first time setup')
         return True
     except Exception as e:
@@ -59,7 +59,7 @@ def check_first_time_setup():
     ## if not, create first time setup file & return True to indicate that the application has not been setup
  
 
-    if os.path.exists(current_path + "saved/first_time_setup.txt"):
+    if os.path.exists(current_path + "first_time_setup.txt"):
         return True
     else:
         return False
@@ -71,7 +71,7 @@ def delete_first_time_setup():
     Deletes the first time setup file.
     """
     try:
-        os.remove(current_path + "saved/first_time_setup.txt")
+        os.remove(current_path + "first_time_setup.txt")
         return True
     except Exception as e:
         print('Error While Deleting First Time Setup File: ', e)
