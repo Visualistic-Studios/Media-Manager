@@ -39,7 +39,7 @@ def create_key():
 #store key in a local file
 def store_key(key, location):
     if location.split()[-1] == '/':
-        location = location[:-1]
+        del location[-1]
 
     with open(os.open(location + "/.key.pem", os.O_CREAT | os.O_WRONLY, 0o600), "wb") as f:
         f.write(key)
