@@ -34,7 +34,7 @@ def app():
         st.write("###### We encrypt your data to keep it safe; we'll use a key that will be stored locally in a safe space. You can generate a key below, or you can use one that's already been generated.")
 
         encryption_selection = st.selectbox("Encryption Setup", ["Generate New Key", "Use Existing Key"])
-        encryption_key_location = st.text_input("Key Location ('/etc/media-manager/key.pem')", placeholder="Where would you like to store your key? Pick somewhere safe!!")
+        encryption_key_location = st.text_input("Key Location ('/home/user/.media-manager')", placeholder="Where would you like to store your key? Pick somewhere safe!!")
         encryption_key = st.text_input("Key", placeholder="[EXISTING_KEY_HERE]")
 
         ##### SUBMIT BUTTON
@@ -51,8 +51,8 @@ def app():
                     st.write("Here's a copy of your key, back it up somewhere safe and don't lose it!")
                     st.text_input("Key", encryption_key[0].decode('utf-8'), type='password')
                     st.write("You'll need this everytime you reinstall the app, or you'll lose your data!")
-                    delete_first_time_setup()
                     st.success("Please restart the Application")
+                    delete_first_time_setup()
                 else:
                     st.error(encryption_key[1])
             else:

@@ -273,10 +273,12 @@ def get_all_scheduled_posts():
                     else:
                         print('invalid post found')
             else:
-                print("Exception while running get all scheduled: ", e)
+                print("Local file not found")
                 return None
         else:
-            print("Exception while running get all scheduled: ", e)
+            # create scheduled file
+            localfile = open(settings.scheduled_posts_file_location_full, 'w')
+            print('Created scheduled file')
             return None
     except Exception as e:
         print("Exception while running get all scheduled: ", e)

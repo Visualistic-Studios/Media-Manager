@@ -57,6 +57,8 @@ def check_first_time_setup():
     # Check if first time setup file exists
     ## If yes, return False to indicate that the application has been setup
     ## if not, create first time setup file & return True to indicate that the application has not been setup
+ 
+
     if os.path.exists(current_path + "saved/first_time_setup.txt"):
         return True
     else:
@@ -136,6 +138,7 @@ def initialize_app():
 
 
 
+
 def initalize_encryption(key=None, key_location=None):
     """
     Will create a new key file from an input key text or by generating a new key.
@@ -145,7 +148,7 @@ def initalize_encryption(key=None, key_location=None):
 
     settings = settings_core()
 
-    settings.set_setting_value('encryption', 'key_location', key_location)
+    settings.set_setting_value('encryption', 'key_location', key_location + "/.key.pem")
 
     try: 
         
@@ -157,16 +160,18 @@ def initalize_encryption(key=None, key_location=None):
         if key_byte:
             
             # check if key file exists
-            if os.path.exists(key_location):
+            if os.path.exists(key_location + "/.key.pem"):
                 raise Exception('Key File Already Exists, please delete the key file to create a new one.')
             else:
+                # if path does not exist, create it
+                if not os.path.exists(key_location):
+                    os.mkdir(key_location)
                 store_key(key_byte, key_location)
                 return key_byte, None
         else:
             raise Exception('Error While Creating Key')
 
-    except Exception as e: 
-        print('Error While Initializing Encryption: ', e)
+    except Exception as e:
         return None, e
 
 def setup_check():

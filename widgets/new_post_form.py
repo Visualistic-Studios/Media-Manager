@@ -92,26 +92,32 @@ def app():
                 ##### CHECK FOR MEDIAS SELECTED
                 desired_medias = []
 
-                if len(media_accounts_checkboxes) > 0:
-                    for media_account in media_accounts_checkboxes:
-                        desired_medias.append(media_account['name'])
 
-                print(uploaded_file_list)
+                ##### IF MEDIA ACCOUNTS SELECTED
+                try: 
+                    if len(media_accounts_checkboxes) > 0:
+                        for media_account in media_accounts_checkboxes:
+                            desired_medias.append(media_account['name'])
 
-                if uploaded_file_list:
-                
-                    ##### CREATE POST OBJECT
-                    desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
-                else:
+                        if uploaded_file_list:
+                        
+                            ##### CREATE POST OBJECT
+                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
+                        else:
 
-                    ##### CREATE POST OBJECT
-                    desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias)
-                
-                ##### SAVE POST OBJECT
-                desired_post.save_as_scheduled()
+                            ##### CREATE POST OBJECT
+                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias)
+                        
+                        ##### SAVE POST OBJECT
+                        desired_post.save_as_scheduled()
 
-                ##### SUCCESS FEEDBACK
-                st.success(f""""{chosen_title}" has been Scheduled!""")
+                        ##### SUCCESS FEEDBACK
+                        st.success(f""""{chosen_title}" has been Scheduled!""")
+                    
+                    else:
+                        st.error("Please select at least one media account")
+                except:
+                    st.error("Please add a media account in 'Settings'")
 
             ##### IF POST IN PAST
             else:    
