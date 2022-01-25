@@ -1,3 +1,14 @@
+#  _____                           _       
+# |_   _|                         | |      
+#   | | _ __ ___  _ __   ___  _ __| |_ ___ 
+#   | || '_ ` _ \| '_ \ / _ \| '__| __/ __|
+#  _| || | | | | | |_) | (_) | |  | |_\__ \
+#  \___/_| |_| |_| .__/ \___/|_|   \__|___/
+#                | |                       
+#                |_|                       
+# -----------------------------------------------------------------------     
+
+
 
 import os
 from dotenv import load_dotenv
@@ -7,6 +18,18 @@ import configparser
 import resources.crypt as crypt
 from resources.utility import string_to_list_of_dictionaries
 
+
+
+#  _   _            _       _     _           
+# | | | |          (_)     | |   | |          
+# | | | | __ _ _ __ _  __ _| |__ | | ___  ___ 
+# | | | |/ _` | '__| |/ _` | '_ \| |/ _ \/ __|
+# \ \_/ / (_| | |  | | (_| | |_) | |  __/\__ \
+#  \___/ \__,_|_|  |_|\__,_|_.__/|_|\___||___/
+# -----------------------------------------------------------------------                         
+
+
+
 current_path = str(pathlib.Path(__file__).parent.absolute()) + "/"                   # | # CURRENT DIRECTORY
 current_path = current_path.replace("resources/", "")                                              # | # REAL DIR
 configpath = str(current_path) + "settings.cfg"                                      # | # CONFIG FILE PATH
@@ -14,6 +37,14 @@ cfg = configparser.RawConfigParser()                                            
 cfg.read(configpath)                                                                 # | # READ CONFIG FILE 
 
 
+
+#  _____ _                         
+# /  __ \ |                        
+# | /  \/ | __ _ ___ ___  ___  ___ 
+# | |   | |/ _` / __/ __|/ _ \/ __|
+# | \__/\ | (_| \__ \__ \  __/\__ \
+#  \____/_|\__,_|___/___/\___||___/
+# -----------------------------------------------------------------------   
 
 
 
@@ -51,10 +82,8 @@ class settings_core:
             self.crypt_setup = True
         else:
             self.crypt_setup = False
-            # No
             print('user needs to setup initial key')
         
-
 
         ##### ACCOUNTS
         if self.crypt_setup: 
@@ -83,14 +112,6 @@ class settings_core:
         self.supported_image_types = cfg.get("media","supported_image_types").split(",")
         self.supported_video_types = cfg.get("media","supported_video_types").split(",")
 
-
-        #print('reading encrypted data:\n------------------------------------------------')
-        #if self.crypt_setup: 
-        #    print(self.media_accounts)
-        #    print(type(self.media_accounts))
-        
-        #print('----------------------------------------------') 
-        
 
     def reload_config(self):
         cfg.read(configpath)
