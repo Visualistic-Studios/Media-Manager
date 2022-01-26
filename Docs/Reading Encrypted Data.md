@@ -5,7 +5,7 @@ Sometimes you might need to read post data directly from Python. I did while deb
 
 
 ```py
->>> from resources.crypt import get_fernet, get_key, decrypt
->>> fernet = get_fernet(get_key("KEYLOCHERE"))
->>> stuff = decrypt(fernet, b"ENCRYPTEDDATAHERE")
+from resources.crypt import get_fernet, get_key, decrypt
+fernet = get_fernet(get_key("KEYLOCHERE"))
+stuff = decrypt(fernet, b"ENCRYPTEDDATAHERE")
 ```
