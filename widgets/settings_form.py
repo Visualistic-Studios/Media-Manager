@@ -81,12 +81,12 @@ def app():
                             st.text("No media accounts added")
 
                         with st.expander("Register New Account"):
-                            new_account["name"] = st.text_input("Unique name", "", None,key="new_account_name") 
-                            new_account["display_name"] = st.text_input("Display name", "", None, key="new_account_display_name")
-                            new_account['key'] = st.text_input(f"Key",f"", None, new_account["name"], 'password')
-                            new_account['secret'] = st.text_input(f"Secret",f"", None, new_account["name"], 'password')  
-                            new_account['access_key'] = st.text_input(f"Access Key",f"", None, new_account["name"], 'password')
-                            new_account['access_secret'] = st.text_input(f"Access Secret",f"", None, new_account["name"], 'password')
+                            new_account["name"] = st.text_input("Unique name", key="new_account_name") 
+                            new_account["display_name"] = st.text_input("Display name", key="new_account_display_name")
+                            new_account['key'] = st.text_input(f"Key", key='key_new_account', type='password')
+                            new_account['secret'] = st.text_input(f"Secret", key='secret_new_account', type='password')  
+                            new_account['access_key'] = st.text_input(f"Access Key", key='access_key_new_account', type='password')
+                            new_account['access_secret'] = st.text_input(f"Access Secret", key='access_secret_new_account', type='password')
 
                             ## Find the right multiselection for media platform
                             media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
