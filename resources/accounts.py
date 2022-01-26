@@ -119,7 +119,7 @@ class Account:
                 settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
             else:
                 settings.set_setting_value("accounts","media_accounts","None")
-            print('accounts removed')
+            print('account removed')
 
             return True
             
