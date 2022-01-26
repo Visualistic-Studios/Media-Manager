@@ -131,7 +131,7 @@ def app():
                             "media_platform": button["media_platform"]
                         }
 
-                        button_request_removal = media_account_button_dict["request_removal"]
+                        button_request_removal = button["request_removal"]
 
                         found_difference = False
 
@@ -144,14 +144,14 @@ def app():
                                         st.markdown(button['name'] + ": " + f"`Setting {key} has changed`")
 
                         
-                        if button_request_removal:
+                        if button_request_removal==True:
                             account_to_update = Account(name=button_data["name"])
                             account_to_update.remove()
                             st.success("Account removed. Please Restart the Application")
 
 
                         ## If changes in account details, update the settings file
-                        if found_difference:
+                        elif found_difference:
                             account_to_update = Account(name=button_data["name"])
                             account_to_update.load_data()
                             account_to_update.update(display_name=button_data["display_name"], key=button_data["key"], secret=button_data["secret"], access_key=button_data["access_key"], access_secret=button_data["access_secret"], media_platform=button_data["media_platform"])
