@@ -9,7 +9,7 @@ def app(post_object, widget_id):
 
         ##### DATE / TIME
         st.markdown(f"# {post_object.title}")
-        st.markdown(f"### {post_object.date_to_post} @  {post_object.time_to_post}")
+        st.markdown(f"### {post_object.date_to_post} @  {post_object.time_to_post} ({post_object.time_zone_to_post})")
         st.code(post_object.description)
 
 

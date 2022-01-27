@@ -10,6 +10,11 @@ from resources.posts import post
 settings = settings_core()
 
 
+
+def format_timezone(timezone):
+    return f"UTC{timezone}"
+
+
 def app():
 
     ##### NEW POSTS FORM
@@ -18,14 +23,17 @@ def app():
 
 
         ##### DATE / TIME
-        datetime_col_date, datetime_col_time = st.columns(2)
+        datetime_col_date, datetime_col_time, datetime_col_timezone = st.columns(3)
         
         with datetime_col_date:
             date_input = st.date_input("DATE")
         with datetime_col_time:
             time_input = st.time_input("TIME")
+        with datetime_col_timezone:
+            timezone_input = st.selectbox("UTC TIMEZONE", settings.utc_timezones,key="timezone_input", format_func=format_timezone, index=14)
+        
 
-        datetime_input = convert_strings_to_datetime(date_input, time_input)
+        datetime_input = convert_strings_to_datetime(date_input, time_input, timezone_input)
 
         ##### TITLE / DESCRIPTION
         chosen_title = st.text_input("Title")
@@ -85,9 +93,12 @@ def app():
 
             ##### CREATE POST
             st.spinner("Creating post...")
+            
+            # get current time in chosen timezone
+            current_time = datetime.now(datetime.strptime(timezone_input, '%z').tzinfo)
 
             ##### IF POST IN FUTURE
-            if datetime_input > datetime.now():
+            if datetime_input > current_time:
 
                 ##### CHECK FOR MEDIAS SELECTED
                 desired_medias = []
@@ -102,11 +113,11 @@ def app():
                         if uploaded_file_list:
                         
                             ##### CREATE POST OBJECT
-                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias, uploaded_file_list)
+                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, timezone_input, desired_medias, uploaded_file_list)
                         else:
 
                             ##### CREATE POST OBJECT
-                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, desired_medias)
+                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, timezone_input, desired_medias)
                         
                         ##### SAVE POST OBJECT
                         desired_post.save_as_scheduled()
@@ -116,8 +127,9 @@ def app():
                     
                     else:
                         st.error("Please select at least one media account")
-                except:
+                except Exception as e:
                     st.error("Please add a media account in 'Settings'")
+                    print(e)
 
             ##### IF POST IN PAST
             else:    

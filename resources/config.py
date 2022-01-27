@@ -113,6 +113,10 @@ class settings_core:
         self.supported_video_types = cfg.get("media","supported_video_types").split(",")
 
 
+        ##### POSTING
+        self.utc_timezones = cfg.get("posting","utc_timezones").split(",")
+
+
     def reload_config(self):
         cfg.read(configpath)
 

@@ -2,8 +2,8 @@ from datetime import datetime
 
 
 ##### CONVERT STRING TO DATETIME OBJECT
-def convert_strings_to_datetime(date, time):
-    return datetime.strptime(str(date) + ' ' + str(time), '%Y-%m-%d %H:%M:%S')
+def convert_strings_to_datetime(date, time, timezone):
+    return datetime.strptime(str(date) + ' ' + str(time) + ' ' + str(timezone), '%Y-%m-%d %H:%M:%S %z')
 
 
 

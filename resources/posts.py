@@ -24,16 +24,25 @@ class post:
     Functionality for saving posts to file
     Can remove itself from a file    
     """
-    def __init__(self, title, description, link, date_to_post, time_to_post, medias_to_post_on, attachments=None):
+    def __init__(self, title, description, link, date_to_post, time_to_post, time_zone_to_post, medias_to_post_on, attachments=None):
         self.title = title
         self.description = description.replace('|__NEWLINE__|', '\n')
         self.link = link
         self.date_to_post = date_to_post
-        self.time_to_post = time_to_post
+
+        # Remove any timezone information so it can be manually added
+        try:
+            if "+" in time_to_post:
+                self.time_to_post = time_to_post.split("+")[0]
+            else:
+                self.time_to_post = time_to_post.split("-")[0]
+        except:
+            self.time_to_post = time_to_post
         self.attachments = attachments 
+        self.time_zone_to_post = time_zone_to_post
 
         ## create datetime object from date object and time object
-        self.datetime_to_post = convert_strings_to_datetime(self.date_to_post, self.time_to_post)
+        self.datetime_to_post = convert_strings_to_datetime(self.date_to_post, self.time_to_post, self.time_zone_to_post)
         self.medias_to_post_on = medias_to_post_on
     
 
@@ -41,9 +50,9 @@ class post:
     def data_to_list(self):
         """Returns a list of post data"""
         if self.attachments:
-            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.datetime_to_post}|-|{self.medias_to_post_on}|-|{self.attachments}"
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|{self.attachments}"
         else:
-            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.datetime_to_post}|-|{self.medias_to_post_on}|-|"
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|"
 
 
     ##### CREATES FILE LIST
@@ -125,8 +134,9 @@ class post:
 
     ##### SAVE AS SCHEDULED
     def save_as_scheduled(self):
-        if self.datetime_to_post > datetime.now():
-            try:
+        try:
+            current_time = datetime.now(datetime.strptime(self.time_zone_to_post, '%z').tzinfo)
+            if self.datetime_to_post > current_time:
                 localfile = open(settings.scheduled_posts_file_location_full, 'a+')
                 if localfile:
                     value_to_write = str(self.data_to_list()).replace('\n', '|__NEWLINE__|')
@@ -135,9 +145,9 @@ class post:
                     value_to_write = crypt.encrypt(fernet, str(value_to_write).encode())
                     localfile.write(value_to_write.decode() + '\n')
                     localfile.close()
-            except Exception as e:
-                print("Exception while running save as scheduled: ", e)      
-            return None
+                return None
+        except Exception as e:
+            print("Exception while running save as scheduled: ", e)
 
 
     ##### SAVE AS PUBLISHED
@@ -216,22 +226,25 @@ def create_post_object_from_string(line):
     if date_time_array:
         date = date_time_array[0]
         time = date_time_array[1]
+        timezone = date_time_array[2]
+
     else:
         date = None
         time = None
+        timezone = None
 
     ##### CREATE MEDIA / ATTACHMENT OBJECT
     ##### CREATE SCHEDULED POST
     post_object = None
     try: 
-        if line[5]:
-            attachments = string_to_list(line[5])
-            post_object = post(line[0], line[1], line[2], date, time, string_to_list(line[4]),attachments)
+        if line[6]:
+            attachments = string_to_list(line[6])
+            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]),attachments)
         else:
-            post_object = post(line[0], line[1], line[2], date, time, string_to_list(line[4]))
+            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]))
     except:
         attachments = None
-        post_object = post(line[0], line[1], line[2], date, time, string_to_list(line[4]))
+        post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]))
 
     return post_object
 
