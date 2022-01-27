@@ -24,13 +24,26 @@ def app():
 
         ##### DATE / TIME
         datetime_col_date, datetime_col_time, datetime_col_timezone = st.columns(3)
+
+        # Get default timezone from settings & find it in the list of timezones
+        default_timezone = settings.default_timezone
+        timezones = settings.utc_timezones
+
+        # find default timezone in timezones
+        default_timezone_index = 0
+        for i in range(0, len(timezones)):
+            if timezones[i] == default_timezone:
+                default_timezone_index = i
+                break
+            else:
+                default_timezone_index = 14
         
         with datetime_col_date:
             date_input = st.date_input("DATE")
         with datetime_col_time:
             time_input = st.time_input("TIME")
         with datetime_col_timezone:
-            timezone_input = st.selectbox("UTC TIMEZONE", settings.utc_timezones,key="timezone_input", format_func=format_timezone, index=14)
+            timezone_input = st.selectbox("UTC TIMEZONE", settings.utc_timezones,key="timezone_input", format_func=format_timezone, index=default_timezone_index)
         
 
         datetime_input = convert_strings_to_datetime(date_input, time_input, timezone_input)

@@ -115,6 +115,7 @@ class settings_core:
 
         ##### POSTING
         self.utc_timezones = cfg.get("posting","utc_timezones").split(",")
+        self.default_timezone = cfg.get("posting","default_timezone")
 
 
     def reload_config(self):
