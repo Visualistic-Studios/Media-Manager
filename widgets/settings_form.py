@@ -2,8 +2,6 @@ import pandas as pd
 import streamlit as st
 from resources.config import settings_core
 from resources.accounts import AccountManager, Account
-from resources.utility import string_to_list_of_dictionaries
-
 
 settings = settings_core()
 AccountManager = AccountManager()
@@ -50,7 +48,7 @@ def app():
                                 media_account_access_key = media_account["access_key"]
                                 media_account_access_secret = media_account["access_secret"]
                                 media_account_media_platform = media_account["media_platform"]
-                                media_account_posting_locations = media_account["posting_locations"].split("|")
+                                media_account_posting_locations = media_account["posting_locations"].split("|_|")
     
 
                                 with st.expander(media_display_name):
@@ -83,13 +81,13 @@ def app():
                             st.text("No media accounts added")
 
                         with st.expander("Register New Account"):
-                            new_account["name"] = st.text_input("Unique name", key="new_account_name") 
-                            new_account["display_name"] = st.text_input("Display name", key="new_account_display_name")
-                            new_account['key'] = st.text_input(f"Key", key='key_new_account', type='password')
+                            new_account["name"] = st.text_input("Unique name", placeholder="unique-name", key="new_account_name") 
+                            new_account["display_name"] = st.text_input("Display name", placeholder="Display Name | Work",key="new_account_display_name")
+                            new_account['key'] = st.text_input(f"Key", placeholder="", key='key_new_account', type='password')
                             new_account['secret'] = st.text_input(f"Secret", key='secret_new_account', type='password')  
                             new_account['access_key'] = st.text_input(f"Access Key", key='access_key_new_account', type='password')
                             new_account['access_secret'] = st.text_input(f"Access Secret", key='access_secret_new_account', type='password')
-                            new_account['posting_locations'] = st.text_input(f"Posting Locations", "Separate with |", key='posting_locations_new_account')
+                            new_account['posting_locations'] = st.text_input(f"Posting Locations", placeholder="Separate with |", key='posting_locations_new_account').split("|")
 
                             ## Find the right multiselection for media platform
                             media_platforms_df = pd.DataFrame(settings.supported_media_platforms)

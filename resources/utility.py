@@ -7,8 +7,6 @@ def convert_strings_to_datetime(date, time, timezone):
 
 
 
-
-
 #string representation of list into list object
 def string_to_list(string):
     string = string.strip("[]").split(', ')
@@ -18,6 +16,7 @@ def string_to_list(string):
 
 # string to list of dictionaries
 def string_to_list_of_dictionaries(string):
+
 
     # split string into list of dictionaries
     string = string.replace("},", "}|--|")

@@ -23,7 +23,6 @@ class Account:
         }
 
 
-
     ########## LOAD DATA
     #####
     def load_data(self):
@@ -52,15 +51,34 @@ class Account:
         access_key = data["access_key"]
         access_secret = data["access_secret"]
         media_platform = data["media_platform"]
-        posting_locations = data["posting_locations"]
+        posting_locations = data["posting_locations"].replace(",", "|_|")
 
         return f"{display_name}|-|{name}|-|{key}|-|{secret}|-|{access_key}|-|{access_secret}|-|{media_platform}|-|{posting_locations}"
+
+    ########## POSTING LOCATION TO STRING
+    #####
+    def posting_location_to_string(self, posting_locations):
+        
+        posting_locations_string = ""
+
+        if posting_locations[-1].strip(" ") == "":
+            del posting_locations[-1]
+
+        for index, loc in enumerate(posting_locations):
+            print(loc.strip(" "))
+            print(loc.strip(" ")=="")
+            if index == len(posting_locations) - 1 and not loc.strip(" ")=="":
+                posting_locations_string += loc
+            elif not loc.strip(" ")=="":
+                posting_locations_string += loc + "|_|"
+
+        return posting_locations_string
 
 
     ########## REGISTER
     #####
     def register(self, display_name, key, secret, access_key=None, access_secret=None, media_platform=None, posting_locations=None):
-        # convert data to dictioinary
+
         data = {
             "display_name": display_name,
             "name": self.data['name'],
@@ -69,8 +87,10 @@ class Account:
             "access_key": access_key,
             "access_secret": access_secret,
             "media_platform": media_platform,
-            "posting_locations": posting_locations
+            "posting_locations": self.posting_location_to_string(posting_locations)
         }
+
+        print('registering account with data: ' + str(data))
 
         accounts = settings.media_accounts
         if accounts:
@@ -95,7 +115,7 @@ class Account:
                 account["access_key"] = access_key
                 account["access_secret"] = access_secret
                 account["media_platform"] = media_platform
-                account["posting_locations"] = posting_locations
+                account["posting_locations"] = self.posting_location_to_string(posting_locations)
                 break
         # save new accounts
         settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
@@ -128,7 +148,6 @@ class Account:
             print(e)
             return False
 
-    
 
 
 
