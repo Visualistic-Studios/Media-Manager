@@ -24,13 +24,13 @@ class post:
     Functionality for saving posts to file
     Can remove itself from a file    
     """
-    def __init__(self, title, description, link, date_to_post, time_to_post, time_zone_to_post, medias_to_post_on, attachments=None):
+    def __init__(self, title, description, link, date_to_post, time_to_post, time_zone_to_post, medias_to_post_on, locations_to_post, attachments=None):
         self.title = title
         self.description = description.replace('|__NEWLINE__|', '\n')
         self.link = link
         self.date_to_post = date_to_post
 
-        # Remove any timezone information so it can be manually added
+        ## Remove any timezone information so it can be manually added
         try:
             if "+" in time_to_post:
                 self.time_to_post = time_to_post.split("+")[0]
@@ -41,18 +41,21 @@ class post:
         self.attachments = attachments 
         self.time_zone_to_post = time_zone_to_post
 
-        ## create datetime object from date object and time object
+        ## 
         self.datetime_to_post = convert_strings_to_datetime(self.date_to_post, self.time_to_post, self.time_zone_to_post)
         self.medias_to_post_on = medias_to_post_on
+        self.locations_to_post = locations_to_post
+
+        
     
 
     ##### DATA TO LIST
     def data_to_list(self):
         """Returns a list of post data"""
         if self.attachments:
-            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|{self.attachments}"
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|{self.locations_to_post}|-|{self.attachments}"
         else:
-            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|"
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|{self.locations_to_post}|-|"
 
 
     ##### CREATES FILE LIST
@@ -220,6 +223,8 @@ def create_post_object_from_string(line):
     ##### SPLIT LINE INTO LIST
     line = line.split('|-|')
     date_time_array = line[3].split(' ')
+    locations_to_post = string_to_list(line[4])
+    print("locations to post: ", locations_to_post)
 
 
     ##### CREATE TIME OBJECT
@@ -237,11 +242,11 @@ def create_post_object_from_string(line):
     ##### CREATE SCHEDULED POST
     post_object = None
     try: 
-        if line[6]:
-            attachments = string_to_list(line[6])
-            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]),attachments)
+        if line[7]:
+            attachments = string_to_list(line[7])
+            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]),locations_to_post,attachments)
         else:
-            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]))
+            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]), locations_to_post)
     except:
         attachments = None
         post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]))
@@ -263,7 +268,7 @@ def get_all_published_posts():
             else:
                 print('no posts found')
                 return None
-    except:
+    except Exception as e:
         print("Exception while running get all published: ", e)
         return None
     return post_data

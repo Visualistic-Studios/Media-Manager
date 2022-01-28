@@ -50,6 +50,7 @@ def app():
                                 media_account_access_key = media_account["access_key"]
                                 media_account_access_secret = media_account["access_secret"]
                                 media_account_media_platform = media_account["media_platform"]
+                                media_account_posting_locations = media_account["posting_locations"].split("|")
     
 
                                 with st.expander(media_display_name):
@@ -59,6 +60,7 @@ def app():
                                     media_account_button_dict['secret'] = st.text_input(f"Secret",f"{media_account_secret}", None, media_account["name"], 'password')  
                                     media_account_button_dict['access_key'] = st.text_input(f"Access Key",f"{media_account_access_key}", None, media_account["name"], 'password')
                                     media_account_button_dict['access_secret'] = st.text_input(f"Access Secret",f"{media_account_access_secret}", None, media_account["name"], 'password')
+                                    media_account_button_dict['posting_locations'] = st.multiselect(f"Posting Locations",media_account_posting_locations,default=media_account_posting_locations, key=f"Posting Locations_{media_account_name}")
      
                                     ## Find the right multiselection for media platform
                                     media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
@@ -87,6 +89,7 @@ def app():
                             new_account['secret'] = st.text_input(f"Secret", key='secret_new_account', type='password')  
                             new_account['access_key'] = st.text_input(f"Access Key", key='access_key_new_account', type='password')
                             new_account['access_secret'] = st.text_input(f"Access Secret", key='access_secret_new_account', type='password')
+                            new_account['posting_locations'] = st.text_input(f"Posting Locations", "Separate with |", key='posting_locations_new_account')
 
                             ## Find the right multiselection for media platform
                             media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
@@ -128,7 +131,8 @@ def app():
                             "secret": button["secret"],
                             "access_key": button["access_key"],
                             "access_secret": button["access_secret"],
-                            "media_platform": button["media_platform"]
+                            "media_platform": button["media_platform"],
+                            "posting_locations": button["posting_locations"]
                         }
 
                         button_request_removal = button["request_removal"]
@@ -154,7 +158,7 @@ def app():
                         elif found_difference:
                             account_to_update = Account(name=button_data["name"])
                             account_to_update.load_data()
-                            account_to_update.update(display_name=button_data["display_name"], key=button_data["key"], secret=button_data["secret"], access_key=button_data["access_key"], access_secret=button_data["access_secret"], media_platform=button_data["media_platform"])
+                            account_to_update.update(display_name=button_data["display_name"], key=button_data["key"], secret=button_data["secret"], access_key=button_data["access_key"], access_secret=button_data["access_secret"], media_platform=button_data["media_platform"], posting_locations=button_data["posting_locations"])
 
 
                 except Exception as e:
@@ -163,7 +167,7 @@ def app():
                 try:
                     if new_account['name'] != "":
                         account_to_add = Account(name=new_account['name'])
-                        account_to_add.register(display_name=new_account['display_name'], key=new_account['key'], secret=new_account['secret'], access_key=new_account['access_key'], access_secret=new_account['access_secret'], media_platform=new_account['media_platform'])
+                        account_to_add.register(display_name=new_account['display_name'], key=new_account['key'], secret=new_account['secret'], access_key=new_account['access_key'], access_secret=new_account['access_secret'], media_platform=new_account['media_platform'], posting_locations=new_account['posting_locations'])
                         st.success("Account added. Please Restart the Application")
 
                 except Exception as e:

@@ -10,7 +10,7 @@ class Account:
 
     ########## INIT
     #####
-    def __init__(self, display_name=None, name=None, key=None, secret=None, access_key=None, access_secret=None, media_platform=None):
+    def __init__(self, display_name=None, name=None, key=None, secret=None, access_key=None, access_secret=None, media_platform=None, posting_locations=None):
         self.data = {
             "display_name": display_name,
             "name": name,
@@ -18,7 +18,8 @@ class Account:
             "secret": secret,
             "access_key": access_key,
             "access_secret": access_secret,
-            "media_platform": media_platform
+            "media_platform": media_platform,
+            "posting_locations": posting_locations
         }
 
 
@@ -51,16 +52,14 @@ class Account:
         access_key = data["access_key"]
         access_secret = data["access_secret"]
         media_platform = data["media_platform"]
+        posting_locations = data["posting_locations"]
 
-        if data["access_key"] != None:
-            return f"{display_name}|-|{name}|-|{key}|-|{secret}|-|{access_key}|-|{access_secret}|-|{media_platform}"
-        else:
-            return f"{display_name}|-|{name}|-|{key}|-|{secret}|-|{access_key}|-|{access_secret}|-|{media_platform}"
+        return f"{display_name}|-|{name}|-|{key}|-|{secret}|-|{access_key}|-|{access_secret}|-|{media_platform}|-|{posting_locations}"
 
 
     ########## REGISTER
     #####
-    def register(self, display_name, key, secret, access_key=None, access_secret=None, media_platform=None):
+    def register(self, display_name, key, secret, access_key=None, access_secret=None, media_platform=None, posting_locations=None):
         # convert data to dictioinary
         data = {
             "display_name": display_name,
@@ -69,7 +68,8 @@ class Account:
             "secret": secret,
             "access_key": access_key,
             "access_secret": access_secret,
-            "media_platform": media_platform
+            "media_platform": media_platform,
+            "posting_locations": posting_locations
         }
 
         accounts = settings.media_accounts
@@ -84,7 +84,7 @@ class Account:
 
     ########## UPDATE
     #####
-    def update(self, display_name=None, key=None, secret=None, access_key=None, access_secret=None, media_platform=None):
+    def update(self, display_name=None, key=None, secret=None, access_key=None, access_secret=None, media_platform=None, posting_locations=None):
         # get current accounts and add new one
         accounts = settings.media_accounts
         for account in accounts:
@@ -95,6 +95,7 @@ class Account:
                 account["access_key"] = access_key
                 account["access_secret"] = access_secret
                 account["media_platform"] = media_platform
+                account["posting_locations"] = posting_locations
                 break
         # save new accounts
         settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
