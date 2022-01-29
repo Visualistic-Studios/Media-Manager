@@ -24,7 +24,7 @@ class post:
     Functionality for saving posts to file
     Can remove itself from a file    
     """
-    def __init__(self, title, description, link, date_to_post, time_to_post, time_zone_to_post, medias_to_post_on, locations_to_post, attachments=None):
+    def __init__(self, title, description, link, date_to_post, time_to_post, time_zone_to_post, locations_to_post, attachments=None):
         self.title = title
         self.description = description.replace('|__NEWLINE__|', '\n')
         self.link = link
@@ -43,8 +43,9 @@ class post:
 
         ## 
         self.datetime_to_post = convert_strings_to_datetime(self.date_to_post, self.time_to_post, self.time_zone_to_post)
-        self.medias_to_post_on = medias_to_post_on
+
         self.locations_to_post = locations_to_post
+
 
         
     
@@ -52,10 +53,22 @@ class post:
     ##### DATA TO LIST
     def data_to_list(self):
         """Returns a list of post data"""
+
+        posting_locations_string = ""
+
+        if self.locations_to_post[-1].strip(" ") == "":
+            del self.locations_to_post[-1]
+
+        for index, loc in enumerate(self.locations_to_post):
+            if index == len(self.locations_to_post) - 1 and not loc.strip(" ")=="":
+                posting_locations_string += loc
+            elif not loc.strip(" ")=="":
+                posting_locations_string += loc + "|_|"
+
         if self.attachments:
-            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|{self.locations_to_post}|-|{self.attachments}"
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{posting_locations_string}|-|{self.attachments}"
         else:
-            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{self.medias_to_post_on}|-|{self.locations_to_post}|-|"
+            return f"{self.title}|-|{self.description}|-|{self.link}|-|{self.date_to_post} {self.time_to_post} {self.time_zone_to_post}|-|{posting_locations_string}|-|"
 
 
     ##### CREATES FILE LIST
@@ -192,7 +205,7 @@ class post:
                     line_clean_medias = string_to_list(line_clean.split('|-|')[4])
 
                     ## If you find a match in the file, remove it
-                    if line_clean_title == self.title and line_clean_description == self.description and line_clean_link == self.link and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post and line_clean_medias == self.medias_to_post_on:
+                    if line_clean_title == self.title and line_clean_description == self.description and line_clean_link == self.link and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post and line_clean_medias == self.locations_to_post:
                         print('removing line: ', line)
                         lines.remove(line)
                         localfile = open(settings.scheduled_posts_file_location_full, 'w')
@@ -223,8 +236,9 @@ def create_post_object_from_string(line):
     ##### SPLIT LINE INTO LIST
     line = line.split('|-|')
     date_time_array = line[3].split(' ')
-    locations_to_post = string_to_list(line[4])
+    locations_to_post = line[4]
     print("locations to post: ", locations_to_post)
+    locations_to_post = locations_to_post.split("|_|")
 
 
     ##### CREATE TIME OBJECT

@@ -22,6 +22,7 @@ class Account:
             "posting_locations": posting_locations
         }
 
+        self.posting_locations = None
 
     ########## LOAD DATA
     #####
@@ -36,6 +37,8 @@ class Account:
                 self.data = account
                 data_loaded = True
                 break
+        
+        self.posting_locations = self.data['posting_locations'].split("|_|")
 
         return data_loaded
         

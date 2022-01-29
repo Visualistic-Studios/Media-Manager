@@ -6,6 +6,7 @@ import streamlit as st
 from resources.utility import convert_strings_to_datetime
 from resources.config import settings_core
 from resources.posts import post
+from resources.accounts import Account
 
 settings = settings_core()
 
@@ -57,14 +58,25 @@ def app():
         st.write("Where would you like to post?")
 
         
-        ##### ACCOUNT SELECTION
+        ##### ACCOUNT LOCATION SELECTION
         def format_post_option(option=[]):
-            return option['display_name']
+            return option
 
-        if settings.media_accounts:
-            media_accounts_checkboxes = st.multiselect("Select media accounts", settings.media_accounts, format_func=format_post_option)
+        ## Create a list of locations from each account
+        account_locations = []
+        for account in settings.media_accounts:
+            account_to_update = Account(name=account["name"])
+            account_to_update.load_data()
+            for location in account_to_update.posting_locations:
+                account_locations.append(f"{account['name']}://{location}")
+
+
+        if account_locations:
+            media_accounts_checkboxes = st.multiselect("Select media accounts", account_locations, format_func=format_post_option)
         else:
-            st.markdown("> No media accounts found -- Please add at least 1 in settings")
+            st.markdown("> No media account locations found -- Please add at least 1 in settings")
+
+        
 
         ##### FILE UPLOAD
         uploaded_file_list = None
@@ -114,23 +126,23 @@ def app():
             if datetime_input > current_time:
 
                 ##### CHECK FOR MEDIAS SELECTED
-                desired_medias = []
-
+                desired_locations = []
 
                 ##### IF MEDIA ACCOUNTS SELECTED
                 try: 
                     if len(media_accounts_checkboxes) > 0:
                         for media_account in media_accounts_checkboxes:
-                            desired_medias.append(media_account['name'])
+                            desired_locations.append(media_account)
+
 
                         if uploaded_file_list:
                         
                             ##### CREATE POST OBJECT
-                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, timezone_input, desired_medias, uploaded_file_list)
+                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, timezone_input, desired_locations, uploaded_file_list)
                         else:
 
                             ##### CREATE POST OBJECT
-                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, timezone_input, desired_medias)
+                            desired_post = post(chosen_title, chosen_description, "n/a", date_input, time_input, timezone_input, desired_locations)
                         
                         ##### SAVE POST OBJECT
                         desired_post.save_as_scheduled()
