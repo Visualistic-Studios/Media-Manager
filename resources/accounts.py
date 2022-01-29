@@ -65,8 +65,6 @@ class Account:
             del posting_locations[-1]
 
         for index, loc in enumerate(posting_locations):
-            print(loc.strip(" "))
-            print(loc.strip(" ")=="")
             if index == len(posting_locations) - 1 and not loc.strip(" ")=="":
                 posting_locations_string += loc
             elif not loc.strip(" ")=="":
@@ -89,8 +87,6 @@ class Account:
             "media_platform": media_platform,
             "posting_locations": self.posting_location_to_string(posting_locations)
         }
-
-        print('registering account with data: ' + str(data))
 
         accounts = settings.media_accounts
         if accounts:
