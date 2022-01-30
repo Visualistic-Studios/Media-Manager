@@ -79,7 +79,7 @@ def app():
         
 
         ##### FILE UPLOAD
-        uploaded_file_list = None
+        uploaded_file_list = []
 
         uploaded_files = st.file_uploader("Upload attachments", accept_multiple_files=True)
 
@@ -89,6 +89,7 @@ def app():
         
             ##### FOR UPLOADED FILES
             for your_file in uploaded_files:
+                print('file uploaded:', your_file)
 
                 ##### CREATE A FILE NAME
 

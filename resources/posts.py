@@ -38,6 +38,7 @@ class post:
                 self.time_to_post = time_to_post.split("-")[0]
         except:
             self.time_to_post = time_to_post
+        
         self.attachments = attachments 
         self.time_zone_to_post = time_zone_to_post
 
@@ -233,11 +234,13 @@ def create_post_object_from_string(line):
 
     line = decrypted_line
 
-    ##### SPLIT LINE INTO LIST
+    ##### CREATE DATA FROM LIST
     line = line.split('|-|')
+    title = line[0]
+    description = line[1]
+    link = line[2]
     date_time_array = line[3].split(' ')
     locations_to_post = line[4]
-    print("locations to post: ", locations_to_post)
     locations_to_post = locations_to_post.split("|_|")
 
 
@@ -252,18 +255,21 @@ def create_post_object_from_string(line):
         time = None
         timezone = None
 
+    
+
+
     ##### CREATE MEDIA / ATTACHMENT OBJECT
     ##### CREATE SCHEDULED POST
     post_object = None
     try: 
-        if line[7]:
-            attachments = string_to_list(line[7])
-            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]),locations_to_post,attachments)
+        if line[5]:
+            attachments = string_to_list(line[5])
+            post_object = post(line[0], line[1], line[2], date, time, timezone, locations_to_post,attachments)
         else:
-            post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]), locations_to_post)
+            post_object = post(line[0], line[1], line[2], date, time, timezone, locations_to_post)
     except:
         attachments = None
-        post_object = post(line[0], line[1], line[2], date, time, timezone, string_to_list(line[4]))
+        post_object = post(line[0], line[1], line[2], date, time, timezone, locations_to_post)
 
     return post_object
 
