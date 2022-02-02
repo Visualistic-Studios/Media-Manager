@@ -15,8 +15,9 @@ from dotenv import load_dotenv
 import pathlib
 import configparser
 
-import resources.crypt as crypt
+from resources.crypt import Crypt, Key
 from resources.utility import string_to_list_of_dictionaries
+
 
 
 
@@ -35,6 +36,11 @@ current_path = current_path.replace("resources/", "")                           
 configpath = str(current_path) + "settings.cfg"                                      # | # CONFIG FILE PATH
 cfg = configparser.RawConfigParser()                                                 # | # CREATE CONFIG OBJECT
 cfg.read(configpath)                                                                 # | # READ CONFIG FILE 
+
+
+
+
+
 
 
 
@@ -73,15 +79,23 @@ class settings_core:
 
         ##### ENCRYPTION
         self.key_location = cfg.get("encryption","key_location")
+        
+        self.crypt = None
 
         ## Has encryption been setup?
         if os.path.isfile(self.key_location):
             # Yes
-            self.encryption_key = crypt.get_key(self.key_location)
+            self.encryption_key = Key(self.key_location)
+            self.block_size = self.get_setting_value("encryption", "block_size")
+            if str(self.block_size) == "None":
+                self.block_size = self.set_setting_value("encryption", "block_size", "4096")
+
+            self.crypt = Crypt(self.encryption_key, self.block_size)
 
             self.crypt_setup = True
         else:
             self.crypt_setup = False
+            
             print('user needs to setup initial key')
         
 
@@ -123,25 +137,21 @@ class settings_core:
 
 
     def read_encrypted_setting(self, category, setting):
-        if self.crypt_setup:
-            key = self.encryption_key
+        try:
             encrypted_setting = self.get_setting_value(category, setting)
-            fernet = crypt.get_fernet(key)
-            setting = crypt.decrypt(fernet, encrypted_setting.encode())
+            setting = self.crypt.decrypt(encrypted_setting.encode()).decode()
             return setting
-        else:
-            print('crypt not setup')
+        except Exception as e:
+            print(e)
             return None
 
     def write_encrypted_setting(self, category, setting, value):
-        if self.crypt_setup:
-            key = self.encryption_key
-            fernet = crypt.get_fernet(key)
-            value = crypt.encrypt(fernet, str(value).encode())
+        try:
+            value = self.crypt.encrypt(str(value).encode())
             self.set_setting_value(category, setting, value.decode())
             self.reload_config()
-        else:
-            print('crypt not setup')
+        except Exception as e:
+            print(e)
             return None
 
     ##### GET ALL SETTINGS CATEGORIES
@@ -217,7 +227,12 @@ class settings_server:
         ## Has encryption been setup?
         if os.path.isfile(self.key_location):
             # Yes
-            self.encryption_key = crypt.get_key(self.key_location)
+            self.encryption_key = Key(self.key_location)
+            self.block_size = self.read_encrypted_setting("encryption", "block_size")
+            print('block size = ' + str(self.block_size))
+            if str(self.block_size) == "None":
+                self.block_size = self.write_encrypted_setting("encryption", "block_size", "4096")
+            self.crypt = Crypt(self.encryption_key, self.block_size)
 
             self.crypt_setup = True
         else:
@@ -244,24 +259,20 @@ class settings_server:
 
 
     def read_encrypted_setting(self, category, setting):
-        if self.crypt_setup:
-            key = self.encryption_key
+        try:
             encrypted_setting = self.get_setting_value(category, setting)
-            fernet = crypt.get_fernet(key)
-            setting = crypt.decrypt(fernet, encrypted_setting.encode())
+            setting = self.crypt.decrypt(encrypted_setting.encode()).decode()
             return setting
-        else:
+        except Exception as e:
             print('crypt not setup')
             return None
 
     def write_encrypted_setting(self, category, setting, value):
-        if self.crypt_setup:
-            key = self.encryption_key
-            fernet = crypt.get_fernet(key)
-            value = crypt.encrypt(fernet, str(value).encode())
+        try:
+            value = self.crypt.encrypt(str(value).encode())
             self.set_setting_value(category, setting, value.decode())
             self.reload_config()
-        else:
+        except Exception as e:
             print('crypt not setup')
             return None
 

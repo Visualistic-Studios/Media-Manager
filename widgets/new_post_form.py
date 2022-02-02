@@ -7,9 +7,13 @@ from resources.utility import convert_strings_to_datetime
 from resources.config import settings_core
 from resources.posts import post
 from resources.accounts import Account
+from resources.crypt import Key, Crypt
+
 
 settings = settings_core()
 
+key = Key(settings.key_location)
+crypt = Crypt(key, settings.block_size)
 
 
 def format_timezone(timezone):
@@ -100,11 +104,12 @@ def app():
                 new_file_path = os.path.join(settings.uploaded_media_dir, chosen_file_name)
 
                 if not os.path.exists(new_file_path):
+                    
                     ##### SAVE THE FILE
-                    with open(new_file_path, "wb") as f:
-                        f.write(your_file.getbuffer())
-                        print(f"Saved file {chosen_file_name} to disk")
-                        uploaded_file_list.append(chosen_file_name)
+                    crypt.encrypt_stream(your_file.read(), new_file_path)
+
+                    print(f"Saved file {chosen_file_name} to disk")
+                    uploaded_file_list.append(chosen_file_name)
             
                 else:  
                     print(f"File {chosen_file_name} already exists. File has been referenced rather than saved.")

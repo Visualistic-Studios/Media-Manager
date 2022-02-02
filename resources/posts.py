@@ -5,8 +5,11 @@ import streamlit as st
 from datetime import datetime, date
 from resources.config import settings_core
 from resources.utility import string_to_list, convert_strings_to_datetime
-import resources.crypt as crypt
+from resources.crypt import Crypt, Key
 settings = settings_core()
+
+key = Key(settings.key_location)
+crypt = Crypt(key, settings.block_size)
 
 
 
@@ -157,9 +160,7 @@ class post:
                 localfile = open(settings.scheduled_posts_file_location_full, 'a+')
                 if localfile:
                     value_to_write = str(self.data_to_list()).replace('\n', '|__NEWLINE__|')
-                    key = settings.encryption_key
-                    fernet = crypt.get_fernet(key)
-                    value_to_write = crypt.encrypt(fernet, str(value_to_write).encode())
+                    value_to_write = crypt.encrypt(str(value_to_write).encode())
                     localfile.write(value_to_write.decode() + '\n')
                     localfile.close()
                 return None
@@ -192,9 +193,7 @@ class post:
                     ## Clean & Decrypt Line
                     line_clean = line.replace('\n', '')
                     line_clean = line_clean.encode()
-                    key = settings.encryption_key
-                    fernet = crypt.get_fernet(key)
-                    line_clean = crypt.decrypt(fernet, line_clean)
+                    line_clean = crypt.decrypt(line_clean).decode()
 
                     ## Parse into Data
                     line_clean_title = line_clean.split('|-|')[0]
@@ -227,10 +226,8 @@ class post:
 def create_post_object_from_string(line):
 
     value = line.encode()
-    key = settings.encryption_key
-    fernet = crypt.get_fernet(key)
     
-    decrypted_line = crypt.decrypt(fernet, value)
+    decrypted_line = crypt.decrypt(value).decode()
 
     line = decrypted_line
 
