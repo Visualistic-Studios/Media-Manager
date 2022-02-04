@@ -233,26 +233,29 @@ def create_post_object_from_string(line):
 
     ##### CREATE DATA FROM LIST
     line = line.split('|-|')
-    title = line[0]
-    description = line[1]
-    link = line[2]
-    date_time_array = line[3].split(' ')
-    locations_to_post = line[4]
-    locations_to_post = locations_to_post.split("|_|")
+
+    if len(line) > 0:
+        title = line[0]
+        description = line[1]
+        link = line[2]
+        date_time_array = line[3].split(' ')
+        locations_to_post = line[4]
+        locations_to_post = locations_to_post.split("|_|")
 
 
-    ##### CREATE TIME OBJECT
-    if date_time_array:
-        date = date_time_array[0]
-        time = date_time_array[1]
-        timezone = date_time_array[2]
+        ##### CREATE TIME OBJECT
+        if date_time_array:
+            date = date_time_array[0]
+            time = date_time_array[1]
+            timezone = date_time_array[2]
 
+        else:
+            date = None
+            time = None
+            timezone = None
     else:
-        date = None
-        time = None
-        timezone = None
-
-    
+        print('invalid line')
+        return None
 
 
     ##### CREATE MEDIA / ATTACHMENT OBJECT
@@ -319,4 +322,6 @@ def get_all_scheduled_posts():
         print("Exception while running get all scheduled: ", e)
         return None
     return post_data
+
+
 

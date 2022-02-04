@@ -84,11 +84,15 @@ class settings_core:
 
         ## Has encryption been setup?
         if os.path.isfile(self.key_location):
-            # Yes
+            # Yes, get key & block size
             self.encryption_key = Key(self.key_location)
             self.block_size = self.get_setting_value("encryption", "block_size")
+            # No, set block size
             if str(self.block_size) == "None":
-                self.block_size = self.set_setting_value("encryption", "block_size", "4096")
+                self.set_setting_value("encryption", "block_size", "4096")
+                self.block_size = 4096
+            else:
+                self.block_size = int(self.block_size)
 
             self.crypt = Crypt(self.encryption_key, self.block_size)
 
@@ -228,10 +232,11 @@ class settings_server:
         if os.path.isfile(self.key_location):
             # Yes
             self.encryption_key = Key(self.key_location)
-            self.block_size = self.read_encrypted_setting("encryption", "block_size")
+            self.block_size = int(self.read_encrypted_setting("encryption", "block_size"))
             print('block size = ' + str(self.block_size))
             if str(self.block_size) == "None":
-                self.block_size = self.write_encrypted_setting("encryption", "block_size", "4096")
+                self.write_encrypted_setting("encryption", "block_size", "4096")
+                self.block_size = 4096
             self.crypt = Crypt(self.encryption_key, self.block_size)
 
             self.crypt_setup = True

@@ -5,6 +5,7 @@ from resources.crypt import Key, Crypt
 from resources.config import settings_core
 from PIL import Image
 
+
 settings = settings_core()
 
 key = Key(settings.key_location)
@@ -25,41 +26,23 @@ def app(post_object, widget_id):
 
         ##### IMAGES
         attached_images = post_object.get_all_image_attachments()
-
-        print(attached_images)
-
-        # the attached images are the actual file contents. (which are currently encrypted .get_buffers())
-
+        decrypted_images = []
         # for each image, we need to decrypt it and then display it
         for image in attached_images:
-            image_file = open(image, "rb")
-            print('image: ', image_file)
-            # print contents of file
-            image_file_contents = image_file.read()
-            print('image_file_contents: ', image_file_contents)
-            #decrypt the image
-            decrypted_image = crypt.decrypt(image_file_contents)
-            print('decrypted_image: ', decrypted_image)
+            
+            ## Decrypt Image
+            decrypted_image = BytesIO()
+            with open(image, "rb") as input_stream:
+                crypt.decrypt_stream(input_stream, decrypted_image)
 
-            # convert the decrypted image to a PIL image
-            decrypted_image_pil = Image.open(BytesIO(decrypted_image.decode()))
-
-            #
-
-            #convert string to bytes
-            # convert bytes to buffer image
-
-            # print('decrypted image type: ', type(BytesIO(decrypted_image)))
-
-            # # convert bytes to image
-            # image = Image.open(decrypted_image)
+            
             
 
-            # image_buffer = BytesIO(image)
+            ## Create Image & Close File
+            decrypted_images.append(decrypted_image)
+            #st.image(decrypted_image_pil, width=268)
+            #decrypted_image.close()
 
-            # print(image_buffer)
-            # print
-            st.image(decrypted_image_pil, width=300)
 
 
         ##### Create a list of images
@@ -69,23 +52,29 @@ def app(post_object, widget_id):
 
             #print(bYTES)
 
-            check_image = open(attached_images[0], "rb")
-
-            print(check_image)
 
             st.caption("Images")
 
             exit
 
-            for i in range(0, len(attached_images), 3):
+            for i in range(0, len(decrypted_images), 3):
                 col1, col2, col3 = st.columns(3)
                 try: 
                     with col1:
-                        st.image(attached_images[i], width=85)
+                        if decrypted_images[i]:
+                            decrypted_image_pil = Image.open(decrypted_images[i])
+                            st.image(decrypted_image_pil, use_column_width='auto')
+                            decrypted_images[i].close()
                     with col2:
-                        st.image(attached_images[i+1], width=85)
+                        if decrypted_images[i+1]:
+                            decrypted_image_pil = Image.open(decrypted_images[i+1])
+                            st.image(decrypted_image_pil, use_column_width='auto')
+                            decrypted_images[i+1].close()
                     with col3:
-                        st.image(attached_images[i+2], width=85)
+                        if decrypted_images[i+2]:
+                            decrypted_image_pil = Image.open(decrypted_images[i+2])
+                            st.image(decrypted_image_pil, use_column_width='auto')
+                            decrypted_images[i+2].close()
                 except IndexError:
                     pass
 

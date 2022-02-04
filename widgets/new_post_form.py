@@ -68,15 +68,18 @@ def app():
 
         ## Create a list of locations from each account
         account_locations = []
-        for account in settings.media_accounts:
-            account_to_update = Account(name=account["name"])
-            account_to_update.load_data()
-            for location in account_to_update.posting_locations:
-                account_locations.append(f"{account['name']}://{location}")
+        if settings.media_accounts:
+            for account in settings.media_accounts:
+                account_to_update = Account(name=account["name"])
+                account_to_update.load_data()
+                for location in account_to_update.posting_locations:
+                    account_locations.append(f"{account['name']}://{location}")
 
 
-        if account_locations:
-            media_accounts_checkboxes = st.multiselect("Select media accounts", account_locations, format_func=format_post_option)
+            if account_locations:
+                media_accounts_checkboxes = st.multiselect("Select media accounts", account_locations, format_func=format_post_option)
+            else:
+                st.markdown("> No media account locations found -- Please add at least 1 in settings")
         else:
             st.markdown("> No media account locations found -- Please add at least 1 in settings")
 
@@ -102,6 +105,9 @@ def app():
 
                 #chosen_file_name = str(hash(your_file.getvalue())) + "." + your_file.name.split(".")[-1]
                 new_file_path = os.path.join(settings.uploaded_media_dir, chosen_file_name)
+                
+                with open(new_file_path, 'wb') as new_file:
+                    crypt.encrypt_stream(your_file, new_file)
 
                 if not os.path.exists(new_file_path):
                     
