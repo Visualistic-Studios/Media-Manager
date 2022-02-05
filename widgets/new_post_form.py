@@ -8,6 +8,8 @@ from resources.config import settings_core
 from resources.posts import post
 from resources.accounts import Account
 from resources.crypt import Key, Crypt
+from hashlib import sha256
+from io import StringIO
 
 
 settings = settings_core()
@@ -94,29 +96,22 @@ def app():
         
         if len(uploaded_files) > 0:
         
-            ##### FOR UPLOADED FILES
+            ##### SAVE ENCRYPTED UPLOADED FILES
             for your_file in uploaded_files:
-                print('file uploaded:', your_file)
 
-                ##### CREATE A FILE NAME
-
-                ## append datetime to file name to make it unique
-                chosen_file_name = datetime.now().strftime("%Y-%m-%M-%S") + "-" + your_file.name
-
-                #chosen_file_name = str(hash(your_file.getvalue())) + "." + your_file.name.split(".")[-1]
+                ## Create Filename & Path
+                chosen_file_name = sha256(your_file.getvalue()).hexdigest() + "." + your_file.name.split(".")[-1]
                 new_file_path = os.path.join(settings.uploaded_media_dir, chosen_file_name)
-                
-                with open(new_file_path, 'wb') as new_file:
-                    crypt.encrypt_stream(your_file, new_file)
 
+                ## Create Encrypted File
                 if not os.path.exists(new_file_path):
+                    with open(new_file_path, 'wb') as new_file:
+                        crypt.encrypt_stream(your_file, new_file)
                     
-                    ##### SAVE THE FILE
-                    crypt.encrypt_stream(your_file.read(), new_file_path)
-
                     print(f"Saved file {chosen_file_name} to disk")
                     uploaded_file_list.append(chosen_file_name)
-            
+
+                ## Reference Existing File
                 else:  
                     print(f"File {chosen_file_name} already exists. File has been referenced rather than saved.")
                     uploaded_file_list.append(chosen_file_name)
