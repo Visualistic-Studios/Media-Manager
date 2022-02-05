@@ -23,81 +23,64 @@ def app(post_object, widget_id):
 
         ########## MEDIAs
         #####
-
+        
+        
         ##### IMAGES
-        attached_images = post_object.get_all_image_attachments()
-        decrypted_images = []
-        # for each image, we need to decrypt it and then display it
-        for image in attached_images:
-            
-            ## Decrypt Image
-            decrypted_image = BytesIO()
-            with open(image, "rb") as input_stream:
-                crypt.decrypt_stream(input_stream, decrypted_image)
+        with st.spinner("Loading Images..."):
+            attached_images = post_object.get_all_image_attachments()
+            decrypted_images = []
 
-            
-            
+            ## For each image, decrypt & append to file for display
+            for image in attached_images:
+                decrypted_image = BytesIO()
+                with open(image, "rb") as input_stream:
+                    crypt.decrypt_stream(input_stream, decrypted_image)
 
-            ## Create Image & Close File
-            decrypted_images.append(decrypted_image)
-            #st.image(decrypted_image_pil, width=268)
-            #decrypted_image.close()
+                decrypted_images.append(decrypted_image)
 
-
-
-        ##### Create a list of images
-        if len(attached_images) > 0:
-            
-            #bYTES = BytesIO(attached_images[0])
-
-            #print(bYTES)
-
-
-            st.caption("Images")
-
-            exit
-
-            for i in range(0, len(decrypted_images), 3):
-                col1, col2, col3 = st.columns(3)
-                try: 
-                    with col1:
-                        if decrypted_images[i]:
-                            decrypted_image_pil = Image.open(decrypted_images[i])
-                            st.image(decrypted_image_pil, use_column_width='auto')
-                            decrypted_images[i].close()
-                    with col2:
-                        if decrypted_images[i+1]:
-                            decrypted_image_pil = Image.open(decrypted_images[i+1])
-                            st.image(decrypted_image_pil, use_column_width='auto')
-                            decrypted_images[i+1].close()
-                    with col3:
-                        if decrypted_images[i+2]:
-                            decrypted_image_pil = Image.open(decrypted_images[i+2])
-                            st.image(decrypted_image_pil, use_column_width='auto')
-                            decrypted_images[i+2].close()
-                except IndexError:
-                    pass
+            ##### Create a list of images from decrypted images, closing each image as we go.
+            if len(decrypted_images) > 0:
+                st.caption("Images")
+                for i in range(0, len(decrypted_images), 3):
+                    col1, col2, col3 = st.columns(3)
+                    try: 
+                        with col1:
+                            if decrypted_images[i]:
+                                decrypted_image_pil = Image.open(decrypted_images[i])
+                                st.image(decrypted_image_pil, use_column_width='auto')
+                                decrypted_images[i].close()
+                        with col2:
+                            if decrypted_images[i+1]:
+                                decrypted_image_pil = Image.open(decrypted_images[i+1])
+                                st.image(decrypted_image_pil, use_column_width='auto')
+                                decrypted_images[i+1].close()
+                        with col3:
+                            if decrypted_images[i+2]:
+                                decrypted_image_pil = Image.open(decrypted_images[i+2])
+                                st.image(decrypted_image_pil, use_column_width='auto')
+                                decrypted_images[i+2].close()
+                    except IndexError:
+                        pass
 
 
         ##### VIDEO
+        with st.spinner("Loading Videos..."):
+            attached_videos = post_object.get_all_video_attachments()
+            decrypted_videos = []
 
-        attached_videos = post_object.get_all_video_attachments()
-        ##### Create a list of videos
-        if len(attached_videos) > 0:
-            
-            st.caption("Videos")
+            ## For each video, decrypt & append to file for display
+            for video in attached_videos:
+                decrypted_video = BytesIO()
+                with open(video, "rb") as input_stream:
+                    crypt.decrypt_stream(input_stream, decrypted_video)
+                decrypted_videos.append(decrypted_video)
 
-            for i in range(0, len(attached_videos), 3):
-                col1, col2, col3 = st.columns(3)
-                try: 
-                    with col1:
-                        st.video(attached_videos[i], width=85)
-                    with col2:
-                        st.video(attached_videos[i+1], width=85)
-                    with col3:
-                        st.video(attached_videos[i+2], width=85)
-                except IndexError:
-                    pass
+            ## Create a list of videos from decrypted videos, closing each video as we go.
+            if len(decrypted_videos) > 0:
+                st.caption("Videos")
+                for video in decrypted_videos:
+                    st.video(video)
+                    video.close()
 
 
         ##### ALL
