@@ -26,7 +26,7 @@ if check_first_time_setup():
 from resources.page_manager import PageManager
 from resources.config import settings_core
 from pages import new_posts, settings_page, app_setup
-from daemons.discord_daemon import DiscordDaemon
+
 
 
 
