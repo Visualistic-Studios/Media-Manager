@@ -107,8 +107,12 @@ def app(post_object, widget_id):
 
         ##### LIST ALL ATTACHMENTS AS FILES
         attached_files = post_object.load_attachments()
-        st.caption("All Files")
-        st.json(attached_files)
+        
+        if attached_files:
+            st.caption(f"All Files")
+            attached_files_length = len(attached_files)
+            st.markdown(f"Total of `{attached_files_length}`")
+            st.json(attached_files)
 
 
                 
