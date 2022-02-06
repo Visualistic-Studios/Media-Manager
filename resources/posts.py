@@ -151,6 +151,22 @@ class post:
                         video_attachments.append(attachment_path)
         return video_attachments
 
+    
+
+    def get_all_audio_attachments(self):
+        """
+        Returns a list of audio attachments
+        """
+        audio_attachments = []
+        if self.attachments:
+            for attachment in self.attachments:
+                attachment_path = self.get_attachment_path(attachment)
+                if os.path.isfile(attachment_path):
+                    attachment_type = attachment_path.split('.')[-1]
+                    if attachment_type in settings.supported_audio_types:
+                        audio_attachments.append(attachment_path)
+        return audio_attachments
+
 
     ##### SAVE AS SCHEDULED
     def save_as_scheduled(self):

@@ -129,6 +129,7 @@ class settings_core:
         ##### MEDIA
         self.supported_image_types = cfg.get("media","supported_image_types").split(",")
         self.supported_video_types = cfg.get("media","supported_video_types").split(",")
+        self.supported_audio_types = cfg.get("media","supported_audio_types").split(",")
 
 
         ##### POSTING

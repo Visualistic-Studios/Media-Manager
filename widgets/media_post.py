@@ -81,7 +81,27 @@ def app(post_object, widget_id):
                 for video in decrypted_videos:
                     st.video(video)
                     video.close()
+            
+        
+        #####
+        with st.spinner("Loading Audio..."):
+            attached_audios = post_object.get_all_audio_attachments()
 
+            decrypted_audios = []
+
+            ## For each audio, decrypt & append to file for display
+            for audio in attached_audios:
+                decrypted_audio = BytesIO()
+                with open(audio, "rb") as input_stream:
+                    crypt.decrypt_stream(input_stream, decrypted_audio)
+                decrypted_audios.append(decrypted_audio)
+
+            ## Create a list of audios from decrypted audios, closing each audio as we go.
+            if len(decrypted_audios) > 0:
+                st.caption("Audio")
+                for audio in decrypted_audios:
+                    st.audio(audio)
+                    audio.close()
 
         ##### ALL
 
