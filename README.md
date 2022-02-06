@@ -1,7 +1,7 @@
 # Media Manager
 Management Platform for Social Media Post Scheduling & Analytics written in Python. Designed to be highly configurable and extendable.
 
-A project by and for the Community. We strive to create a powerful tool that can be used by hobbyists and commercial projects alike to Manage their Social Media accounts without having to pay ridiculous prices. You can self host, or even use [Streamlit Cloud](https://streamlit.io/cloud). One or more users can schedule posts, see scheduled posts, look at post analytics for past posts, & more though a simple UI. 
+A project by and for the Community. We strive to create a powerful tool that can be used by hobbyists and commercial projects alike to Manage their Social Media accounts without having to pay ridiculous prices. One or more users can schedule posts, see scheduled posts, look at post analytics for past posts, & more though a simple UI. 
 
 # Features
 
