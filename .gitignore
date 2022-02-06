@@ -131,3 +131,5 @@ dmypy.json
 settings.cfg
 saved/*
 WorkingNotebook.md
+
+.streamlit/secrets.toml
