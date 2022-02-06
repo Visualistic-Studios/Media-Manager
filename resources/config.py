@@ -57,12 +57,9 @@ cfg.read(configpath)                                                            
 class settings_core:
     
     def __init__(self):
-        
-
 
         ##### ALL
-        self.current_path = str(pathlib.Path(__file__).parent.absolute()) + "/"                     
-        self.current_path = self.current_path.replace("resources/", "")                             
+        self.current_path = current_path                         
         self.saved_path = str(self.current_path) + "saved/"                                       
 
 
@@ -79,7 +76,6 @@ class settings_core:
 
         ##### ENCRYPTION
         self.key_location = cfg.get("encryption","key_location")
-        
         self.crypt = None
 
         ## Has encryption been setup?
