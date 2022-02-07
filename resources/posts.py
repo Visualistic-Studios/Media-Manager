@@ -235,6 +235,9 @@ class post:
 
     ##### LOAD ATTACHMENTS
     def load_attachments(self):
+        """
+        Loads all attachment paths from the post file
+        """
                 ## check if attachments exist
         if self.attachments:
             ## load attachments
