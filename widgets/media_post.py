@@ -1,3 +1,4 @@
+from multiprocessing.dummy import current_process
 import streamlit as st
 # imports BytesIO
 from io import BytesIO
@@ -13,27 +14,94 @@ def app(post_object, widget_id):
     with st.sidebar.expander(post_object.title):
 
         ##### DATE / TIME
+        # progress bar
+        loading_progress = st.progress(0)
         st.markdown(f"# {post_object.title}")
         st.markdown(f"### {post_object.date_to_post} @  {post_object.time_to_post} ({post_object.time_zone_to_post})")
         st.code(post_object.description)
-
+        
+        ## Progress
+        loading_progress.progress(5)
+        current_progress = 5
+        download_section_progress_worth = 35
+        decryption_section_progress_worth = 60
 
         ########## MEDIAs
         #####
+        with st.spinner("Loading Media..."):
+
+            ## Get all attachments
+            # Images
+            attached_images = post_object.get_all_image_attachments()
+            attached_images_length = len(attached_images)
+            current_progress += download_section_progress_worth/3
+            loading_progress.progress(int(current_progress))
+            # Videos
+            attached_videos = post_object.get_all_video_attachments()
+            attached_videos_length = len(attached_videos)
+            current_progress += download_section_progress_worth/3
+            loading_progress.progress(int(current_progress))
+            # Audio
+            attached_audio = post_object.get_all_audio_attachments()
+            attached_audio_length = len(attached_audio)
+            current_progress += download_section_progress_worth/3
+            loading_progress.progress(int(current_progress))
+
+
+  
+
+            total_length = 0
+
+            ## Calculate progress percentage for each section
+            if attached_images_length > 0:
+                total_length += attached_images_length + 1
+                
+            if attached_videos_length > 0:
+                total_length += attached_videos_length + 1
+            
+            if attached_audio_length > 0:
+                total_length += attached_audio_length + 1
+
+
+            per_section_progress_worth = decryption_section_progress_worth / total_length
+
+
         
+        ##### LIST ALL ATTACHMENTS AS FILES
+        attached_files = post_object.load_attachments()
+        
+        if attached_files:
+            st.caption(f"All Files")
+            attached_files_length = len(attached_files)
+            st.markdown(f"Total of `{attached_files_length}`")
+
+
         
         ##### IMAGES
-        with st.spinner("Loading Images..."):
-            attached_images = post_object.get_all_image_attachments()
+        with st.spinner("Processing Images..."):
+
+            ## Get all image attachments
+            
             decrypted_images = []
 
-            ## For each image, decrypt & append to file for display
+            ## Loop through Images
             for image in attached_images:
+
+
+
+                ## Decrypt Image
                 decrypted_image = BytesIO()
+
+                ## Open file decrypt the contents 
                 with settings.storage.open_file(image, "rb") as input_stream:
                     settings.crypt.decrypt_stream(input_stream, decrypted_image)
 
+                ## Append decrypted contents to an array for reference
                 decrypted_images.append(decrypted_image)
+
+                ## Display Progress
+                current_progress += per_section_progress_worth
+                loading_progress.progress(int(current_progress))
 
             ##### Create a list of images from decrypted images, closing each image as we go.
             if len(decrypted_images) > 0:
@@ -59,17 +127,35 @@ def app(post_object, widget_id):
                     except IndexError:
                         pass
 
+                ##### DISPLAY PROGRESS
+                current_progress += per_section_progress_worth
+                loading_progress.progress(int(current_progress))
+
+
 
         ##### VIDEO
         with st.spinner("Loading Videos..."):
-            attached_videos = post_object.get_all_video_attachments()
-            decrypted_videos = []
 
-            ## For each video, decrypt & append to file for display
+            ## Get all video attachments
+            
+            decrypted_videos = []
+            
+
+            ## Loop through Videos
             for video in attached_videos:
+
+                ## Display Progress
+                current_progress += per_section_progress_worth
+                loading_progress.progress(int(current_progress))
+
+                ## Decrypt Video
                 decrypted_video = BytesIO()
+
+                ## Open file decrypt the contents
                 with settings.storage.open_file(video, "rb") as input_stream:
                     settings.crypt.decrypt_stream(input_stream, decrypted_video)
+
+                ## Append decrypted contents to an array for reference
                 decrypted_videos.append(decrypted_video)
 
             ## Create a list of videos from decrypted videos, closing each video as we go.
@@ -78,19 +164,35 @@ def app(post_object, widget_id):
                 for video in decrypted_videos:
                     st.video(video)
                     video.close()
+
+                ##### DISPLAY PROGRESS
+                current_progress += per_section_progress_worth
+                loading_progress.progress(int(current_progress))
             
         
         #####
         with st.spinner("Loading Audio..."):
-            attached_audios = post_object.get_all_audio_attachments()
 
+            ## Get all audio attachments
             decrypted_audios = []
 
-            ## For each audio, decrypt & append to file for display
-            for audio in attached_audios:
+            ## Loop through Audios
+            for audio in attached_audio:
+
+                ## Display Progress
+                current_progress += per_section_progress_worth
+                loading_progress.progress(int(current_progress))
+
+                ## Decrypt Audio
                 decrypted_audio = BytesIO()
+
+
+                ## Open file decrypt the contents
                 with settings.storage.open_file(audio, "rb") as input_stream:
                     settings.crypt.decrypt_stream(input_stream, decrypted_audio)
+                
+                
+                ## Append decrypted contents to an array for reference
                 decrypted_audios.append(decrypted_audio)
 
             ## Create a list of audios from decrypted audios, closing each audio as we go.
@@ -100,18 +202,13 @@ def app(post_object, widget_id):
                     st.audio(audio)
                     audio.close()
 
+                ##### DISPLAY PROGRESS
+                current_progress += per_section_progress_worth
+                loading_progress.progress(int(current_progress))
+
         ##### ALL
-
-        ##### LIST ALL ATTACHMENTS AS FILES
-        attached_files = post_object.load_attachments()
-        
-        if attached_files:
-            st.caption(f"All Files")
-            attached_files_length = len(attached_files)
-            st.markdown(f"Total of `{attached_files_length}`")
-            st.json(attached_files)
-
-
+        st.json(attached_files)
+        loading_progress.empty()
                 
         ########## POST RESCHEDULE & CANCEL
         #####

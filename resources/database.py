@@ -82,5 +82,15 @@ class Storage:
     def get_file_list_with_size_and_time(self):
         if self.connection:
             return self.connection.ls(self.bucket_name, detail=True, headers=True)
-  
+
+
+
+    ##### DOES FILE EXIST
+    def does_file_exist(self, file):
+        try: 
+            check = self.open_file(file, 'r')
+            if check:
+                return True
+        except:
+            return False  
 
