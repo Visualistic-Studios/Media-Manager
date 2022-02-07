@@ -31,14 +31,15 @@ def app():
 
 
                     ##### REGULAR SETTINGS
-                    if setting != "media_accounts":
+
+                    if setting != "media_accounts" and setting != "s3_access" and setting != "s3_secret" and setting != "s3_endpoint" and setting != "s3_bucket":
                         ## Create a button for each setting and add it to a dictionairy 
                         setting_buttons_dict[setting] = st.text_input(setting, settings.get_setting_value(section, setting))
 
 
                     ##### MEDIA ACCOUNTS
-                    else: 
-                        media_accounts = settings.media_accounts#settings.get_setting_value(section, setting)
+                    elif setting == "media_accounts": 
+                        media_accounts = settings.media_accounts #settings.get_setting_value(section, setting)
                         media_account_button_list = []
 
 
@@ -108,6 +109,19 @@ def app():
                             # create 3 options in a select box
                             new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
                     
+
+                    ##### S3 CREDENTIALS
+                    elif setting == "s3_access":
+                        s3_access = st.text_input(f"Access", value=settings.s3_access, key='s3_access_setting', type='password')  
+                    elif setting == "s3_secret":
+                        s3_secret = st.text_input(f"Secret", value=settings.s3_secret, key='s3_secret_setting', type='password')  
+                    elif setting == "s3_endpoint":
+                        s3_endpoint = st.text_input(f"Endpoint", value=settings.s3_endpoint, key='s3_endpoint_setting', type='password')
+                    elif setting == "s3_bucket":
+                        s3_bucket = st.text_input(f"Bucket", value=settings.s3_bucket, key='s3_bucket_setting', type='password')
+                        
+                        
+                        
 
         ##### SUBMIT BUTTON
         submitted = st.form_submit_button("Submit", section)

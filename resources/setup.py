@@ -9,6 +9,8 @@
 import pathlib
 import os
 from resources.crypt import store_key, create_key
+from resources.database import Storage
+
 
 
 
@@ -96,46 +98,16 @@ def initialize_settings():
 
 
 
-
-def initialize_paths():
-    """
-    Creates all paths needed for the application to run properly
-    """
-    from resources.config import settings_core
-
-    settings = settings_core()
-
-    ##### SAVED PATH
-    if not os.path.exists(settings.saved_path):
-        os.mkdir(settings.saved_path)
-
-    ##### UPLOADED MEDIA PATH
-    if not os.path.exists(settings.uploaded_media_dir):
-        os.mkdir(settings.uploaded_media_dir)
-
-    ##### SCHEDULED POST PATH
-    if not os.path.exists(settings.scheduled_posts_file_location_full):
-        open(settings.scheduled_posts_file_location_full, 'a+').close()
-
-    ##### PUBLISHED POST PATH
-    if not os.path.exists(settings.published_posts_file_location_full):
-        open(settings.published_posts_file_location_full, 'a+').close()
-
-
-
 def initialize_app():
     """
     Will create all paths & the settings file when the application is first run.
     """
     try:
         initialize_settings()
-        initialize_paths()
         return True
     except Exception as e:
         print('Error While Initializing Application: ', e)
         return False
-
-
 
 
 
@@ -173,6 +145,24 @@ def initalize_encryption(key=None, key_location=None):
 
     except Exception as e:
         return None, e
+
+
+def intialize_s3(s3_access, s3_secret, s3_endpoint, s3_bucket):
+    """
+    Write encrypted S3 credentials to the configuration file.
+    """
+    try: 
+        from resources.config import settings_core
+        settings = settings_core()
+        settings.write_encrypted_setting("accounts","s3_access",s3_access)
+        settings.write_encrypted_setting("accounts","s3_secret",s3_secret)
+        settings.write_encrypted_setting("accounts","s3_endpoint",s3_endpoint)
+        settings.write_encrypted_setting("accounts","s3_bucket",s3_bucket)
+        return True
+    except: 
+        return False
+
+
 
 def setup_check():
     """
