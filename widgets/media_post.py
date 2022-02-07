@@ -8,9 +8,6 @@ from PIL import Image
 
 settings = settings_core()
 
-key = Key(settings.key_location)
-crypt = Crypt(key, settings.block_size)
-
 def app(post_object, widget_id):
     ##### CREATE POST ENTRY
     with st.sidebar.expander(post_object.title):
@@ -34,7 +31,7 @@ def app(post_object, widget_id):
             for image in attached_images:
                 decrypted_image = BytesIO()
                 with open(image, "rb") as input_stream:
-                    crypt.decrypt_stream(input_stream, decrypted_image)
+                    settings.crypt.decrypt_stream(input_stream, decrypted_image)
 
                 decrypted_images.append(decrypted_image)
 
@@ -72,7 +69,7 @@ def app(post_object, widget_id):
             for video in attached_videos:
                 decrypted_video = BytesIO()
                 with open(video, "rb") as input_stream:
-                    crypt.decrypt_stream(input_stream, decrypted_video)
+                    settings.crypt.decrypt_stream(input_stream, decrypted_video)
                 decrypted_videos.append(decrypted_video)
 
             ## Create a list of videos from decrypted videos, closing each video as we go.
@@ -93,7 +90,7 @@ def app(post_object, widget_id):
             for audio in attached_audios:
                 decrypted_audio = BytesIO()
                 with open(audio, "rb") as input_stream:
-                    crypt.decrypt_stream(input_stream, decrypted_audio)
+                    settings.crypt.decrypt_stream(input_stream, decrypted_audio)
                 decrypted_audios.append(decrypted_audio)
 
             ## Create a list of audios from decrypted audios, closing each audio as we go.
