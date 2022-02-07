@@ -309,11 +309,8 @@ class post:
                 with settings.storage.open_file(settings.scheduled_posts_file_location, 'ab') as localfile:
                     value_to_write = str(self.data_to_list()).replace('\n', '|__NEWLINE__|')
                     value_to_write = settings.crypt.encrypt(str(value_to_write).encode())
-                    print('here')
                     localfile.write(value_to_write)
-                    # add a newline to the bytes file
                     localfile.write(b'\n')
-                    print('there')
                     
                 return None
         except Exception as e:
