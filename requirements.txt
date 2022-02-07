@@ -1,5 +1,6 @@
-streamlit==1.4.0
+streamlit==1.5.0
 APScheduler==3.8.1
 cryptography==36.0.1
 discord.py==1.7.3
 Pillow==9.0.0
+s3fs==2022.1.0
