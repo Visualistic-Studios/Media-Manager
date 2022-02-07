@@ -30,7 +30,7 @@ def app(post_object, widget_id):
             ## For each image, decrypt & append to file for display
             for image in attached_images:
                 decrypted_image = BytesIO()
-                with open(image, "rb") as input_stream:
+                with settings.storage.open_file(image, "rb") as input_stream:
                     settings.crypt.decrypt_stream(input_stream, decrypted_image)
 
                 decrypted_images.append(decrypted_image)
@@ -68,7 +68,7 @@ def app(post_object, widget_id):
             ## For each video, decrypt & append to file for display
             for video in attached_videos:
                 decrypted_video = BytesIO()
-                with open(video, "rb") as input_stream:
+                with settings.storage.open_file(video, "rb") as input_stream:
                     settings.crypt.decrypt_stream(input_stream, decrypted_video)
                 decrypted_videos.append(decrypted_video)
 
@@ -89,7 +89,7 @@ def app(post_object, widget_id):
             ## For each audio, decrypt & append to file for display
             for audio in attached_audios:
                 decrypted_audio = BytesIO()
-                with open(audio, "rb") as input_stream:
+                with settings.storage.open_file(audio, "rb") as input_stream:
                     settings.crypt.decrypt_stream(input_stream, decrypted_audio)
                 decrypted_audios.append(decrypted_audio)
 

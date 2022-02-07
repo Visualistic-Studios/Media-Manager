@@ -8,14 +8,11 @@ from resources.config import settings_core
 from resources.posts import post
 from resources.accounts import Account
 from resources.crypt import Key, Crypt
-from hashlib import sha256
+from hashlib import new, sha256
 from io import StringIO
 
 
 settings = settings_core()
-
-key = Key(settings.key_location)
-crypt = Crypt(key, settings.block_size)
 
 
 def format_timezone(timezone):
@@ -102,11 +99,12 @@ def app():
                 ## Create Filename & Path
                 chosen_file_name = sha256(your_file.getvalue()).hexdigest() + "." + your_file.name.split(".")[-1]
                 new_file_path = os.path.join(settings.uploaded_media_dir, chosen_file_name)
+                print(new_file_path)
 
                 ## Create Encrypted File
                 if not os.path.exists(new_file_path):
-                    with open(new_file_path, 'wb') as new_file:
-                        crypt.encrypt_stream(your_file, new_file)
+                    with settings.storage.open_file(chosen_file_name, 'wb') as new_file:
+                        settings.crypt.encrypt_stream(your_file, new_file)
                     
                     print(f"Saved file {chosen_file_name} to disk")
                     uploaded_file_list.append(chosen_file_name)

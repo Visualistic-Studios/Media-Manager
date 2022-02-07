@@ -225,15 +225,15 @@ class post:
     Gets a full attachment path from a file name
     """
     def get_attachment_path(self, attachment_name):
-        attachment_path = settings.full_uploaded_media_dir + "/" + attachment_name
-        attachment_path = attachment_path.replace("'", "")
+        #attachment_path = settings.full_uploaded_media_dir + "/" + attachment_name
+        attachment_path = attachment_name.replace("'", "")
         attachment_path = attachment_path.strip("\n")
         attachment_path = attachment_path.strip("][")
         return attachment_path
     
 
 
-    ## load attachments
+    ##### LOAD ATTACHMENTS
     def load_attachments(self):
                 ## check if attachments exist
         if self.attachments:
@@ -247,8 +247,8 @@ class post:
                     if not attachment_clean == "[]" or not attachment_clean == "['']" or not attachment_clean == "['\\n']" or not str(attachment_clean) == "\n":
                         attachment_path = settings.full_uploaded_media_dir + "/" + attachment_clean
                         ## I hate this code replace it.
-                        if not attachment_path == settings.full_uploaded_media_dir + "/":
-                            attachment_list.append(open(attachment_path, 'rb'))
+                        if not attachment_path == attachment_clean + "/":
+                            attachment_list.append(settings.storage.open_file(attachment_clean, 'rb'))
             return attachment_list
         else:
             return None
@@ -263,10 +263,10 @@ class post:
         if self.attachments:
             for attachment in self.attachments:
                 attachment_path = self.get_attachment_path(attachment)
-                if os.path.isfile(attachment_path):
-                    attachment_type = attachment_path.split('.')[-1]
-                    if attachment_type in settings.supported_image_types:
-                        image_attachments.append(attachment_path)
+                #if os.path.isfile(attachment_path):
+                attachment_type = attachment_path.split('.')[-1]
+                if attachment_type in settings.supported_image_types:
+                    image_attachments.append(attachment_path)
         return image_attachments
 
 
@@ -278,10 +278,10 @@ class post:
         if self.attachments:
             for attachment in self.attachments:
                 attachment_path = self.get_attachment_path(attachment)
-                if os.path.isfile(attachment_path):
-                    attachment_type = attachment_path.split('.')[-1]
-                    if attachment_type in settings.supported_video_types:
-                        video_attachments.append(attachment_path)
+                #if os.path.isfile(attachment_path):
+                attachment_type = attachment_path.split('.')[-1]
+                if attachment_type in settings.supported_video_types:
+                    video_attachments.append(attachment_path)
         return video_attachments
 
     
@@ -294,10 +294,10 @@ class post:
         if self.attachments:
             for attachment in self.attachments:
                 attachment_path = self.get_attachment_path(attachment)
-                if os.path.isfile(attachment_path):
-                    attachment_type = attachment_path.split('.')[-1]
-                    if attachment_type in settings.supported_audio_types:
-                        audio_attachments.append(attachment_path)
+                #if os.path.isfile(attachment_path):
+                attachment_type = attachment_path.split('.')[-1]
+                if attachment_type in settings.supported_audio_types:
+                    audio_attachments.append(attachment_path)
         return audio_attachments
 
 
