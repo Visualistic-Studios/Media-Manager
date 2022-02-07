@@ -83,17 +83,13 @@ def decrypt(fernet, byte_data):
 
 
 class Key:
-
-
     def __init__(self, path):
         self.path = path
 
         # load key file into object
-        with open(path, "r") as f:
-            self._key = f.read()
-
-
-    
+        if os.path.isfile(path):
+            with open(path, "r") as f:
+                self._key = f.read()
 
 
     ##  CREATE KEY
