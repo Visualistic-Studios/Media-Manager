@@ -10,7 +10,7 @@
 
 
 from time import sleep
-from resources.config import settings_server
+from resources.config import server_settings
 from resources.server import mm_server
 
 
@@ -24,8 +24,8 @@ from resources.server import mm_server
 # -----------------------------------------------------------------------                         
 
 
-settings = settings_server()
-server = mm_server
+settings = server_settings()
+server = mm_server()
 
 
 
@@ -42,9 +42,9 @@ server = mm_server
 ########## APPLICATION LOOP
 #####
 while True:
-    
-    ## Sleep for the specified amount of time
-    sleep(settings.processing_delay_in_seconds)
 
     ## Process Pending Posts
     server.process_pending_scheduled_posts()
+
+    ## Sleep for the specified amount of time
+    sleep(settings.processing_delay_in_seconds)
