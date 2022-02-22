@@ -22,104 +22,105 @@ def app():
                 
                 
                 ##### TITLE
-                st.markdown("#### " + section.capitalize())
-                settings_in_category = settings.get_all_settings_in_category(section)
+                if not section == "server":
+                    st.markdown("#### " + section.capitalize())
+                    settings_in_category = settings.get_all_settings_in_category(section)
 
 
-                ##### SETTINGS BUTTONS
-                for setting in settings_in_category:
+                    ##### SETTINGS BUTTONS
+                    for setting in settings_in_category:
 
 
-                    ##### REGULAR SETTINGS
+                        ##### REGULAR SETTINGS
 
-                    if setting != "media_accounts" and setting != "s3_access" and setting != "s3_secret" and setting != "s3_endpoint" and setting != "s3_bucket":
-                        ## Create a button for each setting and add it to a dictionairy 
-                        setting_buttons_dict[setting] = st.text_input(setting, settings.get_setting_value(section, setting))
-
-
-                    ##### MEDIA ACCOUNTS
-                    elif setting == "media_accounts": 
-                        media_accounts = settings.media_accounts #settings.get_setting_value(section, setting)
-                        media_account_button_list = []
+                        if setting != "media_accounts" and setting != "s3_access" and setting != "s3_secret" and setting != "s3_endpoint" and setting != "s3_bucket": ## this is getting ridiculous need a better solution.
+                            ## Create a button for each setting and add it to a dictionairy 
+                            setting_buttons_dict[setting] = st.text_input(setting, settings.get_setting_value(section, setting))
 
 
-                        if media_accounts != None:
-                            
-                            
-                            st.markdown("**Media accounts**")
+                        ##### MEDIA ACCOUNTS
+                        elif setting == "media_accounts": 
+                            media_accounts = settings.media_accounts #settings.get_setting_value(section, setting)
+                            media_account_button_list = []
 
 
-                            ## Load data for each account
-                            for media_account in media_accounts:
-                                media_account_button_dict = {}
-                                media_display_name = media_account["display_name"]
-                                media_account_name = media_account["name"]
-                                media_account_key = media_account["key"]
-                                media_account_secret = media_account["secret"]
-                                media_account_access_key = media_account["access_key"]
-                                media_account_access_secret = media_account["access_secret"]
-                                media_account_media_platform = media_account["media_platform"]
-                                media_account_posting_locations = media_account["posting_locations"].split("|_|")
-    
+                            if media_accounts != None:
                                 
-                                ## Create a button for each account and add it to a dropdown
-                                with st.expander(media_display_name):
-                                    media_account_button_dict['request_removal'] = st.checkbox("Remove", key=f"Remove_{media_account_name}")
-                                    media_account_button_dict["display_name"] = st.text_input("Display name", media_display_name)
-                                    media_account_button_dict['key'] = st.text_input(f"Key",f"{media_account_key}", None, media_account["name"], 'password')
-                                    media_account_button_dict['secret'] = st.text_input(f"Secret",f"{media_account_secret}", None, media_account["name"], 'password')  
-                                    media_account_button_dict['access_key'] = st.text_input(f"Access Key",f"{media_account_access_key}", None, media_account["name"], 'password')
-                                    media_account_button_dict['access_secret'] = st.text_input(f"Access Secret",f"{media_account_access_secret}", None, media_account["name"], 'password')
-                                    media_account_button_dict['posting_locations'] = st.multiselect(f"Posting Locations",media_account_posting_locations,default=media_account_posting_locations, key=f"Posting Locations_{media_account_name}")
-                                    media_account_button_dict['new_posting_locations'] = st.text_input(f"Add New Posting Locations", "", key=f"new_posting_locations_{media_account['name']}",placeholder="Location 1|Location 2|Location 3").split("|")
-     
-                                    ## Find the right multiselection for media platform
-                                    media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
-                                    media_selected_index = 0   
-
-                                    for index, platform in enumerate(settings.supported_media_platforms):
-                                        if str(platform) == str(media_account_media_platform):
-                                            media_selected_index = index
-
-                                    # create 3 options in a select box
-                                    media_account_button_dict['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=media_account["name"])
-                                    media_account_button_dict['name'] = media_account_name
-                                    media_account_button_list.append(media_account_button_dict)
+                                
+                                st.markdown("**Media accounts**")
 
 
-                        else:
-                            st.text("No media accounts added")
+                                ## Load data for each account
+                                for media_account in media_accounts:
+                                    media_account_button_dict = {}
+                                    media_display_name = media_account["display_name"]
+                                    media_account_name = media_account["name"]
+                                    media_account_key = media_account["key"]
+                                    media_account_secret = media_account["secret"]
+                                    media_account_access_key = media_account["access_key"]
+                                    media_account_access_secret = media_account["access_secret"]
+                                    media_account_media_platform = media_account["media_platform"]
+                                    media_account_posting_locations = media_account["posting_locations"].split("|_|")
+        
+                                    
+                                    ## Create a button for each account and add it to a dropdown
+                                    with st.expander(media_display_name):
+                                        media_account_button_dict['request_removal'] = st.checkbox("Remove", key=f"Remove_{media_account_name}")
+                                        media_account_button_dict["display_name"] = st.text_input("Display name", media_display_name)
+                                        media_account_button_dict['key'] = st.text_input(f"Key",f"{media_account_key}", None, media_account["name"], 'password')
+                                        media_account_button_dict['secret'] = st.text_input(f"Secret",f"{media_account_secret}", None, media_account["name"], 'password')  
+                                        media_account_button_dict['access_key'] = st.text_input(f"Access Key",f"{media_account_access_key}", None, media_account["name"], 'password')
+                                        media_account_button_dict['access_secret'] = st.text_input(f"Access Secret",f"{media_account_access_secret}", None, media_account["name"], 'password')
+                                        media_account_button_dict['posting_locations'] = st.multiselect(f"Posting Locations",media_account_posting_locations,default=media_account_posting_locations, key=f"Posting Locations_{media_account_name}")
+                                        media_account_button_dict['new_posting_locations'] = st.text_input(f"Add New Posting Locations", "", key=f"new_posting_locations_{media_account['name']}",placeholder="Location 1|Location 2|Location 3").split("|")
+        
+                                        ## Find the right multiselection for media platform
+                                        media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
+                                        media_selected_index = 0   
 
-                        ##### ADD NEW MEDIA ACCOUNT
-                        with st.expander("Register New Account"):
-                            new_account["name"] = st.text_input("Unique name", placeholder="unique-name", key="new_account_name") 
-                            new_account["display_name"] = st.text_input("Display name", placeholder="Display Name | Work",key="new_account_display_name")
-                            new_account['key'] = st.text_input(f"Key", placeholder="", key='key_new_account', type='password')
-                            new_account['secret'] = st.text_input(f"Secret", key='secret_new_account', type='password')  
-                            new_account['access_key'] = st.text_input(f"Access Key", key='access_key_new_account', type='password')
-                            new_account['access_secret'] = st.text_input(f"Access Secret", key='access_secret_new_account', type='password')
-                            new_account['posting_locations'] = st.text_input(f"Posting Locations", placeholder="Location 1|Location 2|Location 3", key='posting_locations_new_account').split("|")
+                                        for index, platform in enumerate(settings.supported_media_platforms):
+                                            if str(platform) == str(media_account_media_platform):
+                                                media_selected_index = index
+
+                                        # create 3 options in a select box
+                                        media_account_button_dict['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=media_account["name"])
+                                        media_account_button_dict['name'] = media_account_name
+                                        media_account_button_list.append(media_account_button_dict)
 
 
-                            ## Find the right multiselection for media platform
-                            media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
-                            media_selected_index = 0 
+                            else:
+                                st.text("No media accounts added")
+
+                            ##### ADD NEW MEDIA ACCOUNT
+                            with st.expander("Register New Account"):
+                                new_account["name"] = st.text_input("Unique name", placeholder="unique-name", key="new_account_name") 
+                                new_account["display_name"] = st.text_input("Display name", placeholder="Display Name | Work",key="new_account_display_name")
+                                new_account['key'] = st.text_input(f"Key", placeholder="", key='key_new_account', type='password')
+                                new_account['secret'] = st.text_input(f"Secret", key='secret_new_account', type='password')  
+                                new_account['access_key'] = st.text_input(f"Access Key", key='access_key_new_account', type='password')
+                                new_account['access_secret'] = st.text_input(f"Access Secret", key='access_secret_new_account', type='password')
+                                new_account['posting_locations'] = st.text_input(f"Posting Locations", placeholder="Location 1|Location 2|Location 3", key='posting_locations_new_account').split("|")
 
 
-                            # create 3 options in a select box
-                            new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
-                    
+                                ## Find the right multiselection for media platform
+                                media_platforms_df = pd.DataFrame(settings.supported_media_platforms)
+                                media_selected_index = 0 
 
-                    ##### S3 CREDENTIALS
-                    elif setting == "s3_access":
-                        s3_access = st.text_input(f"Access", value=settings.s3_access, key='s3_access_setting', type='password')  
-                    elif setting == "s3_secret":
-                        s3_secret = st.text_input(f"Secret", value=settings.s3_secret, key='s3_secret_setting', type='password')  
-                    elif setting == "s3_endpoint":
-                        s3_endpoint = st.text_input(f"Endpoint", value=settings.s3_endpoint, key='s3_endpoint_setting', type='password')
-                    elif setting == "s3_bucket":
-                        s3_bucket = st.text_input(f"Bucket", value=settings.s3_bucket, key='s3_bucket_setting', type='password')
+
+                                # create 3 options in a select box
+                                new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
                         
+
+                        ##### S3 CREDENTIALS
+                        elif setting == "s3_access":
+                            s3_access = st.text_input(f"Access", value=settings.s3_access, key='s3_access_setting', type='password')  
+                        elif setting == "s3_secret":
+                            s3_secret = st.text_input(f"Secret", value=settings.s3_secret, key='s3_secret_setting', type='password')  
+                        elif setting == "s3_endpoint":
+                            s3_endpoint = st.text_input(f"Endpoint", value=settings.s3_endpoint, key='s3_endpoint_setting', type='password')
+                        elif setting == "s3_bucket":
+                            s3_bucket = st.text_input(f"Bucket", value=settings.s3_bucket, key='s3_bucket_setting', type='password')
+                            
                         
                         
 
