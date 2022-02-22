@@ -2,7 +2,6 @@ from multiprocessing.dummy import current_process
 import streamlit as st
 # imports BytesIO
 from io import BytesIO
-from resources.crypt import Key, Crypt
 from resources.config import settings_core
 from PIL import Image
 
@@ -62,8 +61,10 @@ def app(post_object, widget_id):
             if attached_audio_length > 0:
                 total_length += attached_audio_length + 1
 
-
-            per_section_progress_worth = decryption_section_progress_worth / total_length
+            if total_length > 0:
+                per_section_progress_worth = decryption_section_progress_worth / total_length
+            else:
+                per_section_progress_worth = 100
 
 
         
