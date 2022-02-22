@@ -11,7 +11,6 @@
 
 
 import os
-from dotenv import load_dotenv
 import pathlib
 import configparser
 
@@ -219,4 +218,15 @@ class settings_core:
             cfg.write(configfile)
         
         self.reload_config()
+
+
+
+
+
+class server_settings:
+    
+    def __init__(self):
+
+        self.processing_delay_in_seconds = int(cfg.get("server","processing_delay_in_seconds"))
+
 

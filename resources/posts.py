@@ -287,8 +287,10 @@ class post:
                     video_attachments.append(attachment_path)
         return video_attachments
 
-    
 
+
+    ########## GET ALL AUDIO ATTACHMENTS
+    #####
     def get_all_audio_attachments(self):
         """
         Returns a list of audio attachments
@@ -304,7 +306,9 @@ class post:
         return audio_attachments
 
 
-    ##### SAVE AS SCHEDULED
+
+    ########## SAVE AS SCHEDULED
+    #####
     def save_as_scheduled(self):
         try:
             current_time = datetime.now(datetime.strptime(self.time_zone_to_post, '%z').tzinfo)
@@ -320,19 +324,44 @@ class post:
             print("Exception while running save as scheduled: ", e)
 
 
-    ##### SAVE AS PUBLISHED
+
+
+
+    ########## SAVE AS PUBLISHED
+    #####
     def save_as_published(self):
         try:
-            localfile = open(settings.published_posts_file_location_full, 'a+')
-            if localfile:
-                localfile.write(str(self.data_to_list()) + '\n')
-                localfile.close()
+            ## probably need to implement a check to see if the post is already published
+            with settings.storage.open_file(settings.published_posts_file_location, 'ab') as localfile:
+                value_to_write = str(self.data_to_list()).replace('\n', '|__NEWLINE__|')
+                value_to_write = settings.crypt.encrypt(str(value_to_write).encode())
+                localfile.write(value_to_write)
+                localfile.write(b'\n')
+                print('done')
+                    
+                return True
         except Exception as e:
-            print("Exception while running save as published: ", e)      
-        return None
+            print("Exception while running save as published: ", e)
 
 
-    ##### REMOVE FROM SCHEDULED FILE
+
+
+    ########## GET CURRENT TIME IN TIMEZONE
+    #####
+    def get_current_time_in_timezone(self):
+        """
+        Returns the post time in UTC
+        """
+        try:
+            current_time = datetime.now(datetime.strptime(self.time_zone_to_post, '%z').tzinfo) ## Gets time in the selected time zone
+            return current_time
+        except Exception as e:
+            print(e)
+
+        
+
+    ########## REMOVE FROM SCHEDULED FILE
+    #####
     def remove_from_scheduled(self):
         """
         Removes a post from the scheduled file 
@@ -408,3 +437,27 @@ class post:
             return None
 
 
+
+    ########## PUBLISH
+    #####
+    def publish(self):
+        """
+        Publishes the post to the desired social media
+        """
+        try:
+
+            ## TODO: Actually publish this to the social media here. Currently just saves to the published file
+            was_published = True ## HERE
+            was_saved_as_published = self.save_as_published()
+            
+            if was_published and was_saved_as_published:
+                self.remove_from_scheduled()
+                print('Post published')
+                return True
+            else:
+                print('Post not published')
+                return False
+            
+        except Exception as e:
+            print("Exception while running publish: ", e)
+            return None
