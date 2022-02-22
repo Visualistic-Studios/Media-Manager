@@ -337,7 +337,6 @@ class post:
                 value_to_write = settings.crypt.encrypt(str(value_to_write).encode())
                 localfile.write(value_to_write)
                 localfile.write(b'\n')
-                print('done')
                     
                 return True
         except Exception as e:
