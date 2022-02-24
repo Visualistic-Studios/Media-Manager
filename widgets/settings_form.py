@@ -1,10 +1,10 @@
 import pandas as pd
 import streamlit as st
 from resources.config import settings_core
-from resources.accounts import AccountManager, Account
+from resources.accounts import Account
 
 settings = settings_core()
-AccountManager = AccountManager()
+
 
 def app():
 
