@@ -71,8 +71,10 @@ def app():
             for account in settings.media_accounts:
                 account_to_update = Account(name=account["name"])
                 account_to_update.load_data()
-                for location in account_to_update.posting_locations:
-                    account_locations.append(f"{account['name']}://{location}")
+                if account_to_update:
+
+                    for location in account_to_update.posting_locations:
+                        account_locations.append(f"{account['name']}://{location}")
 
 
             if account_locations:
