@@ -220,6 +220,20 @@ class settings_core:
         self.reload_config()
 
 
+    ########## GET MEDIA ACCOUNTS WITH NAMES
+    #####
+    def get_media_accounts_with_names(self, names):
+        
+        accounts = []
+        
+        ## Loop through accounts and check for any that match the names provided
+        for account in self.media_accounts:
+            if account["name"] in names:
+                accounts.append(account)
+        
+        return accounts
+
+
 
 
 
