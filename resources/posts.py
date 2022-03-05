@@ -193,6 +193,16 @@ class post:
 
         self.locations_to_post = locations_to_post
 
+        self.accounts_to_post_to = []
+
+        ## Get all unique account names for self.accounts_to_post_to
+        for location in self.locations_to_post:
+            location_account = location.split('://')[0]
+            if location_account not in self.accounts_to_post_to:
+                self.accounts_to_post_to.append(location_account)
+                
+ 
+
 
         
     
@@ -459,4 +469,55 @@ class post:
             
         except Exception as e:
             print("Exception while running publish: ", e)
+            return None
+
+
+    def get_social_media_unique_names(self):
+        """
+        Returns the unique name of each social media to be used in the post
+        """
+        try:
+            
+            names = []
+
+            for location in self.locations_to_post:
+                names.append(location.split('://')[0])
+
+        except Exception as e:
+            print("Exception while running get social media unique name: ", e)
+            return None
+
+
+    def get_posting_locations(self):
+        """
+        Returns the locations to post to
+        """
+        try:
+            locations = []
+
+            for location in self.locations_to_post:
+                locations.append(location.split('://')[-1])
+
+            return locations
+
+        except Exception as e:
+            print("Exception while running get posting locations: ", e)
+            return None
+
+        
+    def get_locations_for_account(self, account_name):
+        """
+        Returns the locations to post to on a specific platform.
+        """
+        try:
+            locations = []
+
+            for location in self.locations_to_post:
+                if str(account_name.lower())==location.split('://')[0].lower():
+                    locations.append(location)
+
+            return locations
+
+        except Exception as e:
+            print("Exception while running get locations on platform: ", e)
             return None

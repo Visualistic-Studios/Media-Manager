@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------     
 
 from resources.posts import get_all_scheduled_posts, get_all_published_posts
+from resources.content_manager import ContentManager
 
 
 #  _____ _                         
@@ -31,6 +32,7 @@ class mm_server:
     ########## INIT
     #####
     def __init__(self):
+        self.content_manager = ContentManager()
         pass
 
 
@@ -89,5 +91,9 @@ class mm_server:
         """
         Processes all scheduled posts that are currently pending.
         """
-        for post in self.get_ready_to_publish_posts():
-            post.publish()
+
+        ##### PROCESS PENDING POSTS
+        self.content_manager.process_pending_posts(self.get_ready_to_publish_posts())
+
+
+

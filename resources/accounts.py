@@ -1,6 +1,10 @@
 
 from resources.config import settings_core
 from resources.utility import string_to_list_of_dictionaries
+from io import BytesIO
+
+import json
+import requests
 
 settings = settings_core()
 
@@ -39,6 +43,7 @@ class Account:
                 break
         
         self.posting_locations = self.data['posting_locations'].split("|_|")
+        
 
         return data_loaded
         
@@ -147,11 +152,184 @@ class Account:
             print(e)
             return False
 
+    
+    ########## CONNECT TO SOCIAL MEDIA PROVIDER
+    #####
+    def connect(self):
+        """
+        Creates a connection to the social media provider.
+        """
+        raise NotImplementedError
+
+
+    ########## DISCONNECT FROM SOCIAL MEDIA PROVIDER
+    #####
+    def disconnect(self):
+        """
+        Disconnects from the social media provider.
+        """
+        raise NotImplementedError
+
+
+    ########## CREATE POST
+    #####
+    def publish_posts(self, post_object):
+        """
+        Creates a post from post object.
+        """
+        raise NotImplementedError
+
+
+    ########## DELETE POST
+    #####
+    def delete_posts(self, post_id):
+        """
+        Deletes a post from the platform & cleans up the database. Will no longer be available for analytics
+        """
+        ## Parent function here will clean up the database & associated files
+        pass
+
+    ########## IS READY
+    #####
+    def is_ready(self):
+        """
+        Checks if the account is ready to be used.
+        """
+        raise NotImplementedError
 
 
 
-# Class for managing multiple accounts at once / posting. 
-class AccountManager:
-    def __init__(self):
-        self.accounts = []
-        print('Account Manager started')
+
+########## DISCORD
+#####
+
+class DiscordAccount(Account):
+    """
+    Class for Discord Account with connection, posting, and more functionality.
+
+    Requires a unique name for an account that's already been registered.
+    
+    Child class of Account. Can only be used after Account is created / registered."""
+
+
+    ##### INIT
+    def __init__(self, account_unique_name):
+
+
+        ## Call Parent Init
+        super().__init__(name=account_unique_name)
+
+        self.load_data()
+
+
+    def connect(self):
+        """
+        Doesn't do anything in this case, Discord accounts use a simple webhook. 
+        """
+
+        return True
+
+
+    def disconnect(self):
+        """
+        Doesn't do anything in this case, Discord accounts use a simple webhook. 
+        """
+
+        return True
+
+        
+
+
+
+    ##### CREATE POST
+    def publish_posts(self, post_objects):
+        """
+        Creates a post from post object.
+        """
+
+        published_posts = []
+
+        ##### FOR EACH POST
+        for post in post_objects:
+
+            ## Get all the post locations that match this discord account's name
+            locations_to_post = post.get_locations_for_account(self.data['name']) 
+            
+            ##### GET EACH LOCATION
+            for location in locations_to_post:
+
+                data = {
+                    'content': f"**{post.title}**\n\n```{post.description}```",
+                }
+
+                ##### PREPARE ATTACHMENTS
+                files = None
+
+                if post.attachments:
+                    files={}
+                    for index, f in enumerate(post.load_attachments()):
+
+                        ## Decrypt Image
+                        file_final = BytesIO()
+
+                        ## Properly format the path
+                        path = f.path.split("/")
+                        del path[0]
+                        path_final = ""
+                        for section in path:
+                            path_final = path_final + "/" + section
+
+                        ## Open file decrypt the contents 
+                        with settings.storage.open_file(path_final, "rb") as input_stream:
+                            settings.crypt.decrypt_stream(input_stream, file_final)
+
+                        ## Add to an array for later
+                        files[f"file{index}"] = file_final
+
+                ## Get the web url from the location
+                split_location = location.split("://")
+                webhook_url = split_location[1] + "://" + split_location[2]
+                
+
+                ##### PUBLISH THE POST
+                if files:
+                    r = requests.post(webhook_url, data=data, files=files, headers={'Content-Type': 'multipart/form-data'})
+                else:
+                    r = requests.post(webhook_url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
+                
+
+                ##### LOG SUCCESSFUL POSTS
+                if r:
+                    published_posts.append(post)
+                else:
+                    print("Post failed")
+                    return False
+
+
+
+
+
+    ##### DELETE POST
+    def delete_posts(self, post_ids):
+        # do whatever discord needs to to delete the post
+        pass
+
+
+    ##### RETREIVE POST ANALYTICS
+    def get_posts_analytics(self, post_ids):
+        # do whatever discord needs to to get the post analytics
+        pass
+
+
+    ##### IS READY
+    def is_ready(self):
+        return True
+
+
+
+
+
+
+
+
+
