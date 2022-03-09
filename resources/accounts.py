@@ -212,7 +212,9 @@ class DiscordAccount(Account):
     Child class of Account. Can only be used after Account is created / registered."""
 
 
-    ##### INIT
+
+    ########## INIT
+    #####
     def __init__(self, account_unique_name):
 
 
@@ -222,6 +224,9 @@ class DiscordAccount(Account):
         self.load_data()
 
 
+
+    ########## CONNECT
+    #####
     def connect(self):
         """
         Doesn't do anything in this case, Discord accounts use a simple webhook. 
@@ -230,6 +235,9 @@ class DiscordAccount(Account):
         return True
 
 
+
+    ########## DISCONNECT
+    #####
     def disconnect(self):
         """
         Doesn't do anything in this case, Discord accounts use a simple webhook. 
@@ -239,28 +247,27 @@ class DiscordAccount(Account):
 
         
 
-
-
-    ##### CREATE POST
+    ########## CREATE POST
+    #####
     def publish_posts(self, post_objects):
         """
         Creates a post from post object.
         """
 
         published_posts = []
+        errors = []
 
         ##### FOR EACH POST
         for post in post_objects:
 
-            ## Get all the post locations that match this discord account's name
+            ## Get all the post locations that match this discord account name
             locations_to_post = post.get_locations_for_account(self.data['name']) 
             
-            ##### GET EACH LOCATION
+            ## Post to all discord webhook locations
             for location in locations_to_post:
 
-                data = {
-                    'content': f"**{post.title}**\n\n```{post.description}```",
-                }
+                data = {'content': f"**{post.title}**\n\n```{post.description}```"}
+
 
                 ##### PREPARE ATTACHMENTS
                 files = None
@@ -269,43 +276,42 @@ class DiscordAccount(Account):
                     files={}
                     for index, f in enumerate(post.load_attachments()):
 
-                        ## Decrypt Image
+                        # ## Decrypt File
                         file_final = BytesIO()
+                        settings.crypt.decrypt_stream(f, file_final)
+                        file_final.seek(0)
 
-                        ## Properly format the path
-                        path = f.path.split("/")
-                        del path[0]
-                        path_final = ""
-                        for section in path:
-                            path_final = path_final + "/" + section
-
-                        ## Open file decrypt the contents 
-                        with settings.storage.open_file(path_final, "rb") as input_stream:
-                            settings.crypt.decrypt_stream(input_stream, file_final)
+                        ## Set Filename
+                        file_name = f.full_name.split("/")[-1]
 
                         ## Add to an array for later
-                        files[f"file{index}"] = file_final
+                        files[f"file{index+1}"] = (file_name, file_final)
 
-                ## Get the web url from the location
+                ## Get the webhook url from the location
                 split_location = location.split("://")
                 webhook_url = split_location[1] + "://" + split_location[2]
                 
 
                 ##### PUBLISH THE POST
                 if files:
-                    r = requests.post(webhook_url, data=data, files=files, headers={'Content-Type': 'multipart/form-data'})
+                    r = requests.post(webhook_url, data=data, files=files, stream=True)
                 else:
-                    r = requests.post(webhook_url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
+                    r = requests.post(webhook_url, data=data)
                 
 
                 ##### LOG SUCCESSFUL POSTS
                 if r:
                     published_posts.append(post)
                 else:
-                    print("Post failed")
-                    return False
+                    errors.append(r.content)
+                    continue
 
-
+        ## If all have been published return true, otherwise return false
+        if len(published_posts) == len(post_objects):
+            return True
+        else:
+            print(errors)
+            return False
 
 
 
