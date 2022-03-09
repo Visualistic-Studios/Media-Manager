@@ -265,8 +265,14 @@ class DiscordAccount(Account):
             
             ## Post to all discord webhook locations
             for location in locations_to_post:
+                
 
-                data = {'content': f"**{post.title}**\n\n```{post.description}```"}
+                if not post.title: 
+                    data = {'content': f"{post.description}"}
+                elif not post.description:
+                    data = {'content': f"**{post.title}**"}
+                else:
+                    data = {'content': f"**{post.title}**\n\n{post.description}"}
 
 
                 ##### PREPARE ATTACHMENTS
@@ -288,6 +294,7 @@ class DiscordAccount(Account):
                         files[f"file{index+1}"] = (file_name, file_final)
 
                 ## Get the webhook url from the location
+                print(location)
                 split_location = location.split("://")
                 webhook_url = split_location[1] + "://" + split_location[2]
                 
@@ -308,10 +315,10 @@ class DiscordAccount(Account):
 
         ## If all have been published return true, otherwise return false
         if len(published_posts) == len(post_objects):
-            return True
+            return published_posts
         else:
             print(errors)
-            return False
+            return published_posts
 
 
 

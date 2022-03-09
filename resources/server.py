@@ -93,7 +93,12 @@ class mm_server:
         """
 
         ##### PROCESS PENDING POSTS
-        self.content_manager.process_pending_posts(self.get_ready_to_publish_posts())
+        published_posts = self.content_manager.process_pending_posts(self.get_ready_to_publish_posts())
+        if published_posts:
+            for post in published_posts:
+                post = post[0]
+                post.remove_from_scheduled()
+                post.save_as_published()
 
 
 
