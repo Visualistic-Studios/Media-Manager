@@ -25,6 +25,8 @@ A project by and for the Community. We strive to create a powerful tool that can
 # Status
 Currently, the project is unreleased and in development. This readme will be changed when that's different. 
 
+You can find [the current roadmap here](https://github.com/Visualistic-Studios/Media-Manager/projects/1)
+
 # How to Contribute
 Want to contribute? Check out the [Issues](https://github.com/Visualistic-Studios/MediaManager/issues) or [Projects](https://github.com/Visualistic-Studios/MediaManager/projects) tab, and create a [Pull Request](https://github.com/Visualistic-Studios/MediaManager/pulls)! 
 
