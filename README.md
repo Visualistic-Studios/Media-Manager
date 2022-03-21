@@ -7,7 +7,9 @@ A project by and for the Community. We strive to create a powerful tool that can
 
 * Social Media Post Scheduling (No limits, virtually unlimited users) 
 * Scheduled Post - Review & Cancel (Can view/cancel scheduled posts)
-* Discord, Twitter
+* User Friendly Client-Side Encryption 
+* S3 Data Storage (Post Data, Media)
+* Discord & Twitter Support
 * Image Support
 * Video Support
 * File Support
