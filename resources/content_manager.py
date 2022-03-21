@@ -134,7 +134,9 @@ class ContentManager:
                 if account_name in media_connections.keys():
 
                     ## Add the post to the list of posts that have been published
-                    published_posts.append(media_connections[account_name].publish_posts([post]))
+                    post_ref = media_connections[account_name].publish_posts([post])
+                    if post_ref:
+                        published_posts.append(post_ref)
 
 
         ##### CLOSE CONNECTIONS

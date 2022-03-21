@@ -171,6 +171,16 @@ class Account:
         raise NotImplementedError
 
 
+    ########## FORMAT POST DATA
+    #####
+    def format_post_data(self, post_object):
+        """
+        Formats a post object for posting to the social media provider.
+        """
+        raise NotImplementedError
+        
+
+
     ########## CREATE POST
     #####
     def publish_posts(self, post_object):
@@ -245,6 +255,35 @@ class DiscordAccount(Account):
 
         return True
 
+
+
+    ########## FORMAT POST DATA
+    #####
+    def format_post_data(self, post_object):
+        """
+        Formats a post in a request format for a Discord webhook
+        """
+
+
+        ##### FORMAT POST CONTENT
+        if not post_object.title: 
+            content = f"{post_object.description}"
+        elif not post_object.description:
+            content =  f"**{post_object.title}**"
+        else:
+            content = f"**{post_object.title}**\n\n{post_object.description}"
+        
+
+        
+
+        ##### PUT DATA TOGETHER
+        post_data = {
+            "content": content,
+            "allowed_mentions": { "roles": ["role-id"] }
+        }                
+
+        return post_data
+
         
 
     ########## CREATE POST
@@ -265,15 +304,6 @@ class DiscordAccount(Account):
             
             ## Post to all discord webhook locations
             for location in locations_to_post:
-                
-
-                if not post.title: 
-                    data = {'content': f"{post.description}"}
-                elif not post.description:
-                    data = {'content': f"**{post.title}**"}
-                else:
-                    data = {'content': f"**{post.title}**\n\n{post.description}"}
-
 
                 ##### PREPARE ATTACHMENTS
                 files = None
@@ -294,19 +324,22 @@ class DiscordAccount(Account):
                         files[f"file{index+1}"] = (file_name, file_final)
 
                 ## Get the webhook url from the location
-                print(location)
                 split_location = location.split("://")
                 webhook_url = split_location[1] + "://" + split_location[2]
                 
 
+                ##### FORMAT THE POST
+                post_data = self.format_post_data(post)
+
+
                 ##### PUBLISH THE POST
                 if files:
-                    r = requests.post(webhook_url, data=data, files=files, stream=True)
+                    r = requests.post(webhook_url, data=post_data, files=files, stream=True)
                 else:
-                    r = requests.post(webhook_url, data=data)
-                
+                    r = requests.post(webhook_url, data=post_data)
 
-                ##### LOG SUCCESSFUL POSTS
+           
+                ##### LOG SUCCESSFUL POSTS   ## This needs to be fixed, should check for a success return code
                 if r:
                     published_posts.append(post)
                 else:
@@ -314,10 +347,6 @@ class DiscordAccount(Account):
                     continue
 
         ## If all have been published return true, otherwise return false
-        if len(published_posts) == len(post_objects):
-            return published_posts
-        else:
-            print(errors)
             return published_posts
 
 
