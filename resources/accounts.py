@@ -279,7 +279,7 @@ class DiscordAccount(Account):
         ##### PUT DATA TOGETHER
         post_data = {
             "content": content,
-            "allowed_mentions": { "roles": ["role-id"] }
+            #"allowed_mentions": { "roles": ["role-id"] }
         }                
 
         return post_data
