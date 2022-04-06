@@ -35,11 +35,11 @@ Currently, the project is unreleased and in development. This readme will be cha
 You can find [the current roadmap here](https://github.com/Visualistic-Studios/Media-Manager/projects/1)
 
 # How to Contribute
-Want to contribute? Check out the [Issues](https://github.com/Visualistic-Studios/MediaManager/issues) or [Projects](https://github.com/Visualistic-Studios/MediaManager/projects) tab, and create a [Pull Request](https://github.com/Visualistic-Studios/MediaManager/pulls)! 
+Want to contribute? Check out the [Issues](https://github.com/Visualistic-Studios/Media-Manager/issues) or [Projects](https://github.com/Visualistic-Studios/Media-Manager/projects) tab, and create a [Pull Request](https://github.com/Visualistic-Studios/Media-Manager/pulls)! 
 
 # License 
 
-This project was made to be free; it uses the [GPL-3.0 License](https://github.com/Visualistic-Studios/MediaManager/blob/main/LICENSE). Please take the time to become familiar with it, **especially if you plan on using any of this code for something else**. 
+This project was made to be free; it uses the [GPL-3.0 License](https://github.com/Visualistic-Studios/Media-Manager/blob/main/LICENSE). Please take the time to become familiar with it, **especially if you plan on using any of this code for something else**. 
 
 
 
