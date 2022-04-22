@@ -1,15 +1,49 @@
-
-from resources.config import settings_core
-from resources.utility import string_to_list_of_dictionaries
-from io import BytesIO
+#  _____                           _       
+# |_   _|                         | |      
+#   | | _ __ ___  _ __   ___  _ __| |_ ___ 
+#   | || '_ ` _ \| '_ \ / _ \| '__| __/ __|
+#  _| || | | | | | |_) | (_) | |  | |_\__ \
+#  \___/_| |_| |_| .__/ \___/|_|   \__|___/
+#                | |                       
+#                |_|                       
+# -----------------------------------------------------------------------   
 
 import json
 import requests
+import re
+from discord_webhook import DiscordWebhook
+
+
+from resources.config import settings_core
+from resources.utility import string_to_list_of_dictionaries
+
+
+
+
+#  _   _            _       _     _           
+# | | | |          (_)     | |   | |          
+# | | | | __ _ _ __ _  __ _| |__ | | ___  ___ 
+# | | | |/ _` | '__| |/ _` | '_ \| |/ _ \/ __|
+# \ \_/ / (_| | |  | | (_| | |_) | |  __/\__ \
+#  \___/ \__,_|_|  |_|\__,_|_.__/|_|\___||___/
+# -----------------------------------------------------------------------     
+
 
 settings = settings_core()
 
-########## ACCOUNT CLASS
 
+
+#  _____ _                         
+# /  __ \ |                        
+# | /  \/ | __ _ ___ ___  ___  ___ 
+# | |   | |/ _` / __/ __|/ _ \/ __|
+# | \__/\ | (_| \__ \__ \  __/\__ \
+#  \____/_|\__,_|___/___/\___||___/
+# -----------------------------------------------------------------------   
+
+
+########## ACCOUNT BASE CLASS
+#####
 class Account:
 
     ########## INIT
@@ -178,10 +212,18 @@ class Account:
         Formats a post object for posting to the social media provider.
         """
         raise NotImplementedError
-        
+
+    
+    ########## PUBLISH POST
+    #####
+    def publish_post(self, post_object):
+        """
+        Publishes a post
+        """
+        raise NotImplementedError
 
 
-    ########## CREATE POST
+    ########## PUBLISH POSTS
     #####
     def publish_posts(self, post_object):
         """
@@ -264,27 +306,94 @@ class DiscordAccount(Account):
         Formats a post in a request format for a Discord webhook
         """
 
-
         ##### FORMAT POST CONTENT
+        ## Temporary, need to implement user defined formatting rules. 
+        ## Will also need to take into account the platforms message character limit. 
+        ## Probably want to return a list of 'post data' for the publisher function to use. 
+
         if not post_object.title: 
             content = f"{post_object.description}"
         elif not post_object.description:
             content =  f"**{post_object.title}**"
         else:
             content = f"**{post_object.title}**\n\n{post_object.description}"
-        
+
 
         
+        # ##### PUT DATA TOGETHER
+        # post_data = {
+        #     "content": content,
+        #     #"allowed_mentions" : {"users": ["68751"] }, 
+        # }                
 
-        ##### PUT DATA TOGETHER
-        post_data = {
-            "content": content,
-            #"allowed_mentions": { "roles": ["role-id"] }
-        }                
+        return content
 
-        return post_data
+
+    ########## BUILD MENTIONS LIST
+    #####
+    def build_mentions_list(self, post_content):
+        return {"users": []}
 
         
+    ########## PUBLISH POST
+    #####
+    def publish_post(self, post_object):
+        ## Get all the post locations that match this discord account name
+        locations_to_post = post_object.get_locations_for_account(self.data['name']) 
+
+        ## Initialize Post Log
+        successful_posts = []
+        all_posts_published = False
+        
+        ## Post to all discord webhook locations
+        for location in locations_to_post:
+
+            loc_data = {}
+
+            ## Webhook URL
+            url = post_object.get_url_from_post_location(location)
+            if url:
+                loc_data['url'] = post_object.get_url_from_post_location(location)
+            
+            ## Format the Post
+            content = self.format_post_data(post_object) # Will eventually be dependant on location
+            if content:
+                loc_data['content'] = content
+
+            ## Create proper Mentions
+            mentions = self.build_mentions_list(loc_data['content'])
+            if mentions:
+                loc_data['allowed_mentions'] = self.build_mentions_list(loc_data['content'])
+
+            ## Intialize the Webhook
+            webhook = DiscordWebhook(**loc_data)
+
+            ## Prepare Attachments
+            files = post_object.get_decrypted_attachments()
+
+            ## Add any attachments to webhook
+            if files:
+                for _file in files.values():
+                    name = _file[0]
+                    data = _file[1]
+                    webhook.add_file(file=data, filename=name)
+
+            ## Publish Webhook
+            r = webhook.execute()
+
+            ## Validate & Log
+            if r:
+                response_code = re.sub("[^0-9^.]", "", str(r))
+                if response_code == "200" or response_code == "204":
+                    published_reference = json.loads(r.content)
+                    successful_posts.append(published_reference)
+                    #published_reference['id'] # Provides post ID
+                    #published_reference['webhook_id']
+
+        ## Return
+        return successful_posts
+
+    
 
     ########## CREATE POST
     #####
@@ -299,55 +408,21 @@ class DiscordAccount(Account):
         ##### FOR EACH POST
         for post in post_objects:
 
-            ## Get all the post locations that match this discord account name
-            locations_to_post = post.get_locations_for_account(self.data['name']) 
-            
-            ## Post to all discord webhook locations
-            for location in locations_to_post:
+            r = self.publish_post(post)
 
-                ##### PREPARE ATTACHMENTS
-                files = None
+            ## If all attempted post locations are accounted for
+            if len(r) > post.get_num_scheduled_post_locations_for_account():
+                # for link in r.['successful_posts']:
+                    # post.add_published_link(link)
 
-                if post.attachments:
-                    files={}
-                    for index, f in enumerate(post.load_attachments()):
-
-                        # ## Decrypt File
-                        file_final = BytesIO()
-                        settings.crypt.decrypt_stream(f, file_final)
-                        file_final.seek(0)
-
-                        ## Set Filename
-                        file_name = f.full_name.split("/")[-1]
-
-                        ## Add to an array for later
-                        files[f"file{index+1}"] = (file_name, file_final)
-
-                ## Get the webhook url from the location
-                split_location = location.split("://")
-                webhook_url = split_location[1] + "://" + split_location[2]
-                
-
-                ##### FORMAT THE POST
-                post_data = self.format_post_data(post)
-
-
-                ##### PUBLISH THE POST
-                if files:
-                    r = requests.post(webhook_url, data=post_data, files=files, stream=True)
-                else:
-                    r = requests.post(webhook_url, data=post_data)
-
-           
-                ##### LOG SUCCESSFUL POSTS   ## This needs to be fixed, should check for a success return code
-                if r:
-                    published_posts.append(post)
-                else:
-                    errors.append(r.content)
-                    continue
+                ## Log post
+                published_posts.append(post)
+            else:
+                errors.append(r.content)
+                continue
 
         ## If all have been published return true, otherwise return false
-            return published_posts
+        return published_posts
 
 
 
