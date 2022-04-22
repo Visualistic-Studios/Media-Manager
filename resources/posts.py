@@ -13,7 +13,7 @@
 
 import os
 
-
+from io import BytesIO
 from datetime import datetime
 from resources.config import settings_core
 from resources.utility import string_to_list, convert_strings_to_datetime
@@ -176,6 +176,8 @@ class post:
         self.link = link
         self.date_to_post = date_to_post
 
+        ## Need a 'published locations' value that holds data on individual published posts.
+
         ## Remove any timezone information so it can be manually added
         try:
             if "+" in time_to_post:
@@ -266,8 +268,41 @@ class post:
         else:
             return None
 
+    
+    ##### LOAD ATTACHMENTS
+    def get_decrypted_attachments(self):
+        """
+        Gets 
+        """
+
+        ## Stop if no attachments
+        if not self.attachments:
+            return None
+        else:
+
+            ## Init Decrypted File Dict
+            files={}
+            
+            ## Loop on attachments
+            for index, f in enumerate(self.load_attachments()):
+
+                # ## Decrypt File
+                file_final = BytesIO()
+                settings.crypt.decrypt_stream(f, file_final)
+                file_final.seek(0)
+
+                ## Set Filename
+                file_name = f.full_name.split("/")[-1]
+
+                ## Store to return
+                files[f"{index+1}"] = [file_name, file_final]
+
+        ## Return Decrypted Files
+        return files
 
 
+    ########## GET ALL IMAGE ATTACHMENTS
+    #####
     def get_all_image_attachments(self):
         """
         Returns a list of image attachments
@@ -283,6 +318,9 @@ class post:
         return image_attachments
 
 
+
+    ########## GET ALL VIDEO ATTACHMENTS
+    #####
     def get_all_video_attachments(self):
         """
         Returns a list of video attachments
@@ -472,6 +510,8 @@ class post:
             return None
 
 
+    ########## GET SOCIAL MEDIA UNIQUE NAMES
+    #####
     def get_social_media_unique_names(self):
         """
         Returns the unique name of each social media to be used in the post
@@ -488,9 +528,10 @@ class post:
             return None
 
 
+    ## isn't currently used by anything? Can't remember the purpose.. Need to comment better
     def get_posting_locations(self):
         """
-        Returns the locations to post to
+        Returns the locations to post to. 
         """
         try:
             locations = []
@@ -504,10 +545,15 @@ class post:
             print("Exception while running get posting locations: ", e)
             return None
 
+
         
+    ########## GET POSTING LOCATIONS FOR ACCOUNT
+    #####
     def get_locations_for_account(self, account_name):
         """
         Returns the locations to post to on a specific platform.
+
+        Example would be a Discord Channel ID.
         """
         try:
             locations = []
@@ -521,3 +567,38 @@ class post:
         except Exception as e:
             print("Exception while running get locations on platform: ", e)
             return None
+
+
+
+    ########## GET NUM SCHEDULED POST LOCATIONS
+    #####
+    def get_num_scheduled_post_locations(self):
+        """
+        Returns the number of scheduled post locations for this post. 
+        """
+
+        return len(self.locations_to_post())
+
+
+
+    ########## GET NUM SCHEDULED POST LOCATIONS FOR ACCOUNT
+    #####
+    def get_num_scheduled_post_locations_for_account(self, account_name):
+        """
+        Returns the number of scheduled post locations for a specific account for this post. 
+        """
+        
+        return len(self.get_locations_for_account(account_name))
+
+
+
+    ########## GET URL FROM POST LOCATION
+    #####
+    def get_url_from_post_location(self, location):
+        """
+        Gets the url from a post location
+        """
+
+        split_loc = location.split("://")
+
+        return split_loc[1] + "://" + split_loc[2]
