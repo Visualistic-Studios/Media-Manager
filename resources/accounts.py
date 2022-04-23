@@ -68,7 +68,7 @@ class Account:
         data_loaded = False
 
         ## Load Account Data from Settings
-        accounts = string_to_list_of_dictionaries(settings.read_encrypted_setting("accounts", "media_accounts"))
+        accounts = string_to_list_of_dictionaries(settings.get_setting_value("accounts", "media_accounts"))
 
         for account in accounts:
             if account["name"] == self.data['name']:

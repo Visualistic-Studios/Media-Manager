@@ -6,47 +6,66 @@ from resources.accounts import Account
 settings = settings_core()
 
 
+#   ___              _ _           _   _             
+#  / _ \            | (_)         | | (_)            
+# / /_\ \_ __  _ __ | |_  ___ __ _| |_ _  ___  _ __  
+# |  _  | '_ \| '_ \| | |/ __/ _` | __| |/ _ \| '_ \ 
+# | | | | |_) | |_) | | | (_| (_| | |_| | (_) | | | |
+# \_| |_/ .__/| .__/|_|_|\___\__,_|\__|_|\___/|_| |_|
+#       | |   | |                                    
+#       |_|   |_|                                    
+# ----------------------------------------------------------------------- 
+
+# Settings Form Widget
+
+
+########## APPLICATION
+#####
 def app():
 
-    ##### LOAD SETTINGS FILE AND FIND SECTIONS
-    settings_file = open(settings.current_path + "settings.cfg", "r")
+    ## Initialize
     sections = settings.get_all_setting_categories()
     setting_buttons_dict = {}
     new_account = {}
+    setting_display_names = {}
 
-    ##### SETTINGS FORM
+    ## Main Settings Form
     with st.form("Settings"):
 
-        ##### SECTIONS
+        ## Create Sections from Categories
         for section in sections:   
-                
-                
-                ##### TITLE
                 if not section == "server":
+
+                    ## Create Section
                     st.markdown("#### " + section.capitalize())
+
+                    ## Log Settings
                     settings_in_category = settings.get_all_settings_in_category(section)
 
-
-                    ##### SETTINGS BUTTONS
+                    ## Create Settings Buttons
                     for setting in settings_in_category:
 
 
-                        ##### REGULAR SETTINGS
+                        ########## DISPLAY NAMES
+                        #####
+                        if setting.lower().startswith("display_name_"):
 
-                        if setting != "media_accounts" and setting != "s3_access" and setting != "s3_secret" and setting != "s3_endpoint" and setting != "s3_bucket": ## this is getting ridiculous need a better solution.
-                            ## Create a button for each setting and add it to a dictionairy 
-                            setting_buttons_dict[setting] = st.text_input(setting, settings.get_setting_value(section, setting))
+                            ## Get Associated Setting
+                            setting_name = setting.replace("display_name_", "")
+
+                            ## Log Display Name
+                            setting_display_names[setting_name] = [settings.get_setting_value(section, setting), section]
 
 
-                        ##### MEDIA ACCOUNTS
+
+                        ########## MEDIA ACCOUNTS
+                        #####
                         elif setting == "media_accounts": 
-                            media_accounts = settings.media_accounts #settings.get_setting_value(section, setting)
+
+                            ## Initialize
+                            media_accounts = settings.media_accounts 
                             media_account_button_list = []
-
-
                             if media_accounts != None:
-                                
-                                
                                 st.markdown("**Media accounts**")
 
 
@@ -82,16 +101,15 @@ def app():
                                             if str(platform) == str(media_account_media_platform):
                                                 media_selected_index = index
 
-                                        # create 3 options in a select box
+                                        ## Create 3 options in a select box
                                         media_account_button_dict['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=media_account["name"])
                                         media_account_button_dict['name'] = media_account_name
                                         media_account_button_list.append(media_account_button_dict)
 
-
                             else:
                                 st.text("No media accounts added")
 
-                            ##### ADD NEW MEDIA ACCOUNT
+                            ## Add New Media Account
                             with st.expander("Register New Account"):
                                 new_account["name"] = st.text_input("Unique name", placeholder="unique-name", key="new_account_name") 
                                 new_account["display_name"] = st.text_input("Display name", placeholder="Display Name | Work",key="new_account_display_name")
@@ -109,86 +127,123 @@ def app():
 
                                 # create 3 options in a select box
                                 new_account['media_platform'] = st.selectbox("Media platform", media_platforms_df,index = media_selected_index, key=new_account["name"])
-                        
 
-                        ##### S3 CREDENTIALS
-                        elif setting == "s3_access":
-                            s3_access = st.text_input(f"Access", value=settings.s3_access, key='s3_access_setting', type='password')  
-                        elif setting == "s3_secret":
-                            s3_secret = st.text_input(f"Secret", value=settings.s3_secret, key='s3_secret_setting', type='password')  
-                        elif setting == "s3_endpoint":
-                            s3_endpoint = st.text_input(f"Endpoint", value=settings.s3_endpoint, key='s3_endpoint_setting', type='password')
-                        elif setting == "s3_bucket":
-                            s3_bucket = st.text_input(f"Bucket", value=settings.s3_bucket, key='s3_bucket_setting', type='password')
+
+
+                        # ########## GLOBAL MENTION IDs
+                        # #####
+                        # elif setting == "global_mention_ids":
+
+                        #     ## Needs to be a dropdown similar to accounts. The dropdown will have the global user friendly name (the one used in posts & such) 
+                        #     ## Below it will have a list of inputs. Platform Name | Platform ID
+
+                        #     setting_buttons_dict[setting] = [st.text_input(f"Global Mention IDs", value=settings.global_mention_ids, key='global_mention_ids', type='password')]
+
+
+
+                        ########## REGULAR SETTINGS
+                        #####
+                        else:
                             
-                        
+                            ## Define Setting Type (Default/Hidden)
+                            setting_type = "password" if setting.lower().startswith("hidden_") else "default"
+
+                            ## Retrieve Display Name
+                            display_name = setting_display_names[setting][0] if setting in setting_display_names.keys() else setting
+
+                            ## Retrieve Value
+                            value = settings.get_setting_value(section, setting)
+                            
+                            ## Create a button & log it + the section
+                            setting_buttons_dict[setting] = [st.text_input(label=display_name, value=value, key=setting, type=setting_type), section]
+
                         
 
-        ##### SUBMIT BUTTON
+        ########## SUBMIT BUTTON
+        #####
         submitted = st.form_submit_button("Submit", section)
+        if submitted:  
 
-
-        if submitted:  # if the user has submitted the form, then the settings.cfg file is updated with the new values.
+            ## Section Title
             with st.expander("Settings Saved"):
+
+                ########## UPDATE SETTINGS
+                #####
                 for section2 in sections:
-                    for setting in setting_buttons_dict:
+
+                    ####### INITIALIZE
+                    ## Get Settings of Category
+                    settings_in_category = settings.get_all_settings_in_category(section2)
+                    for setting in settings_in_category:
+
+                        ## Ignorees
+                        if setting.lower().startswith("display_name_") or str(setting) == "media_accounts":
+                            continue
+
+                        ## Initialize Valid Settings
+                        if setting in setting_buttons_dict:
+                        
+                            setting_ref = setting_buttons_dict[setting]
+                            setting_button = setting_ref[0]
+                            setting_details = setting_ref[1]
+                            setting_category = setting_details[0]
+
+                        ## Look for changes
+                        if str(setting_button) != str(settings.get_setting_value(section2, setting)):
+                            
+                            ## Redact Hidden Setting Values before showing them to user. 
+                            setting_response = settings.value_redaction_message if setting.startswith("hidden_") else setting_button
+
+                            ## Notify User through of changes
+                            st.markdown(setting + ": " + f"`{setting_response}`")
+                                
+                            ## Update Setting Value
+                            settings.set_setting_value(section2, setting, setting_button)
 
 
-                        ##### CHECK IF THE SETTING IS MOST CURRENT
-                        try: 
-                            if setting_buttons_dict[setting] != settings.get_setting_value(section2, setting):
-                                ## Create a notice of changes
-                                st.markdown(setting + ": " + f"`{setting_buttons_dict[setting]}`")
-
-
-                                ##### UPDATE THE SETTING
-                                if str(setting) != "media_accounts":
-                                    settings.set_setting_value(section2, setting, setting_buttons_dict[setting])
-
-
-                        except Exception as e:
-                            pass
-
-
-                ##### UPDATE ACCOUNTS
+                ########## UPDATE EXISTING ACCOUNTS
+                #####
                 try:
+
+                    ## Format Button Data
                     for button in media_account_button_list:
-                        button_data = {
-                            "display_name": button["display_name"],
-                            "name": button["name"],
-                            "key": button["key"],
-                            "secret": button["secret"],
-                            "access_key": button["access_key"],
-                            "access_secret": button["access_secret"],
-                            "media_platform": button["media_platform"],
-                            "posting_locations": button["posting_locations"]
-                        }
+
+                        ## Initialize Button Data
+                        button_data = {"display_name": button["display_name"],"name": button["name"],"key": button["key"],"secret": button["secret"],"access_key": button["access_key"],"access_secret": button["access_secret"],"media_platform": button["media_platform"],"posting_locations": button["posting_locations"]}
 
 
-                        new_posting_locations = button["new_posting_locations"]
-                        ## Take care of empty button
-                        if len(new_posting_locations)==1 and new_posting_locations[0] == "":
-                            new_posting_locations = []
-
+                        ########## REQUEST REMOVE ACCOUNT
+                        ## Get Reference of Request Removal Button
                         button_request_removal  = button["request_removal"]
 
+                        ## Remove Account if Requested
+                        if button_request_removal==True:
 
+                            ## Create Account Object
+                            account_to_update = Account(name=button_data["name"])
+
+                            ## Remove Account
+                            account_to_update.remove()
+
+                            ## Logß
+                            st.success(f"Account {button_data['name']} removed.")
+
+                        ## Register Changed Settings
                         found_difference = False
-
-
                         for account in settings.media_accounts:
                             if account['name'] == button["name"]:
                                 # compare all data and break if there is a difference
                                 for key in button_data:
-                                    if button_data[key] != account[key]:
+                                    if str(button_data[key]) != str(account[key]):
                                         found_difference = True
                                         st.markdown(button['name'] + ": " + f"`Setting {key} has changed`")
 
+                        ## Get Reference of New Post Location 
+                        new_posting_locations = button["new_posting_locations"]
 
-                        if button_request_removal==True:
-                            account_to_update = Account(name=button_data["name"])
-                            account_to_update.remove()
-                            st.success(f"Account {button_data['name']} removed.")
+                        ## Take care of empty button
+                        if len(new_posting_locations)==1 and new_posting_locations[0] == "":
+                            new_posting_locations = []
 
 
                         ## Look for changes in account details, update the settings file if found
@@ -212,6 +267,9 @@ def app():
                 except Exception as e:
                     pass
                 
+
+                ########## CREATE NEW ACCOUNT
+                #####
                 try:
                     if new_account['name'] != "":
                         account_to_add = Account(name=new_account['name'])

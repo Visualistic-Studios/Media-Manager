@@ -42,7 +42,6 @@ cfg.read(configpath)                                                            
 
 
 
-
 #  _____ _                         
 # /  __ \ |                        
 # | /  \/ | __ _ ___ ___  ___  ___ 
@@ -83,7 +82,7 @@ class settings_core:
 
 
         ##### ENCRYPTION
-        self.key_location = cfg.get("encryption","key_location")
+        self.key_location = cfg.get("encryption","hidden_key_location")
         self.crypt = None
 
         ## Has encryption been setup?
@@ -113,18 +112,22 @@ class settings_core:
             ##### ACCOUNTS
             media_accounts_temp = cfg.get("accounts","media_accounts")
             if media_accounts_temp != "None":
-                self.media_accounts = string_to_list_of_dictionaries(self.read_encrypted_setting("accounts", "media_accounts"))
+                self.media_accounts = string_to_list_of_dictionaries(self.get_setting_value("accounts", "media_accounts"))
             else:
                 self.media_accounts = None
 
             
             ##### S3 CREDENTIALS
-            self.s3_access = self.read_encrypted_setting("accounts", "s3_access")
-            self.s3_secret = self.read_encrypted_setting("accounts", "s3_secret")
-            self.s3_endpoint = self.read_encrypted_setting("accounts", "s3_endpoint")
-            self.s3_bucket = self.read_encrypted_setting("accounts", "s3_bucket")
+            self.s3_access = self.get_setting_value("accounts", "hidden_s3_access")
+            self.s3_secret = self.get_setting_value("accounts", "hidden_s3_secret")
+            self.s3_endpoint = self.get_setting_value("accounts", "hidden_s3_endpoint")
+            self.s3_bucket = self.get_setting_value("accounts", "hidden_s3_bucket")
 
             self.storage = Storage(self.s3_access, self.s3_secret, self.s3_endpoint, self.s3_bucket)
+
+
+            ##### Global Mention IDs
+            self.global_mention_ids = self.get_setting_value("posting", "global_mention_ids")
 
         else:
             self.media_accounts = None
@@ -137,6 +140,7 @@ class settings_core:
         self.no_posts_title = cfg.get("app","no_posts_title")
         self.no_posts_description = cfg.get("app","no_posts_description")
         self.post_not_scheduled_for_reason_time_in_past = cfg.get("app","post_not_scheduled_for_reason_time_in_past")
+        self.value_redaction_message = cfg.get("app", "value_redaction_message")
 
 
         ##### PERFORMANCE
@@ -158,11 +162,9 @@ class settings_core:
         cfg.read(configpath)
 
 
-    def read_encrypted_setting(self, category, setting):
+    def read_encrypted_setting(self, setting_value):
         try:
-            encrypted_setting = self.get_setting_value(category, setting)
-            setting = self.crypt.decrypt(encrypted_setting.encode()).decode()
-            return setting
+            return self.crypt.decrypt(setting_value.encode()).decode()
         except Exception as e:
             print(e)
             return None
@@ -190,7 +192,14 @@ class settings_core:
 
     ##### GET SETTING VALUE
     def get_setting_value(self,category,setting):
-        return cfg.get(category,setting)
+
+        value = cfg.get(category,setting)
+        
+        ## Decrypt if encrypted
+        if list(value)[-1] == "=":
+            value = self.read_encrypted_setting(value)
+
+        return value
 
 
     ##### SET SETTING VALUE
@@ -200,6 +209,7 @@ class settings_core:
             cfg.write(configfile)
 
         self.reload_config()
+
 
     ##### CREATE NEW SETTING
     def create_new_setting(self,category,setting,value):
