@@ -1,7 +1,9 @@
 import pandas as pd
 import streamlit as st
+import ast
 from resources.config import settings_core
 from resources.accounts import Account
+from widgets import global_mentions as global_mentions_widget
 
 settings = settings_core()
 
@@ -54,7 +56,7 @@ def app():
                             setting_name = setting.replace("display_name_", "")
 
                             ## Log Display Name
-                            setting_display_names[setting_name] = [settings.get_setting_value(section, setting), section]
+                            setting_display_names[setting_name] = [settings.get_setting_value(category=section, setting=setting), section]
 
 
 
@@ -132,14 +134,10 @@ def app():
 
                         # ########## GLOBAL MENTION IDs
                         # #####
-                        # elif setting == "global_mention_ids":
+                        elif setting == "global_mention_ids":
 
-                        #     ## Needs to be a dropdown similar to accounts. The dropdown will have the global user friendly name (the one used in posts & such) 
-                        #     ## Below it will have a list of inputs. Platform Name | Platform ID
-
-                        #     setting_buttons_dict[setting] = [st.text_input(f"Global Mention IDs", value=settings.global_mention_ids, key='global_mention_ids', type='password')]
-
-
+                            ## Global Mention Return
+                            global_mentions = global_mentions_widget.app() # Returns List of Dicts for Global Mentions
 
                         ########## REGULAR SETTINGS
                         #####
@@ -152,7 +150,7 @@ def app():
                             display_name = setting_display_names[setting][0] if setting in setting_display_names.keys() else setting
 
                             ## Retrieve Value
-                            value = settings.get_setting_value(section, setting)
+                            value = settings.get_setting_value(category=section, setting=setting)
                             
                             ## Create a button & log it + the section
                             setting_buttons_dict[setting] = [st.text_input(label=display_name, value=value, key=setting, type=setting_type), section]
@@ -169,39 +167,35 @@ def app():
 
                 ########## UPDATE SETTINGS
                 #####
-                for section2 in sections:
+                for setting in setting_buttons_dict.keys():
 
-                    ####### INITIALIZE
-                    ## Get Settings of Category
-                    settings_in_category = settings.get_all_settings_in_category(section2)
-                    for setting in settings_in_category:
+                    ## Skip Display Names
+                    if setting.startswith("display_name_") or setting == "media_accounts" or setting == "global_mention_ids":
+                        continue
 
-                        ## Ignorees
-                        if setting.lower().startswith("display_name_") or str(setting) == "media_accounts":
-                            continue
+                    ## Initialize Valid Settings
+                    if setting in setting_buttons_dict:
+                    
+                        setting_ref = setting_buttons_dict[setting]
+                        setting_button = setting_ref[0]
+                        setting_details = setting_ref[1]
+                        setting_category = setting_details[0]
 
-                        ## Initialize Valid Settings
-                        if setting in setting_buttons_dict:
+
+                    ## Look for changes
+                    if str(setting_button) != str(settings.get_setting_value(setting=setting)):
                         
-                            setting_ref = setting_buttons_dict[setting]
-                            setting_button = setting_ref[0]
-                            setting_details = setting_ref[1]
-                            setting_category = setting_details[0]
+                        ## Redact Hidden Setting Values before showing them to user. 
+                        setting_response = settings.value_redaction_message if setting.startswith("hidden_") else setting_button
 
-                        ## Look for changes
-                        if str(setting_button) != str(settings.get_setting_value(section2, setting)):
+                        ## Notify User through of changes
+                        st.markdown(setting + ": " + f"`{setting_response}`")
                             
-                            ## Redact Hidden Setting Values before showing them to user. 
-                            setting_response = settings.value_redaction_message if setting.startswith("hidden_") else setting_button
-
-                            ## Notify User through of changes
-                            st.markdown(setting + ": " + f"`{setting_response}`")
-                                
-                            ## Update Setting Value
-                            settings.set_setting_value(section2, setting, setting_button)
+                        ## Update Setting Value
+                        settings.set_setting_value(setting=setting, value=setting_button)
 
 
-                ########## UPDATE EXISTING ACCOUNTS
+                ########## UPDATE EXISTING MEDIA ACCOUNTS
                 #####
                 try:
 
@@ -212,7 +206,6 @@ def app():
                         button_data = {"display_name": button["display_name"],"name": button["name"],"key": button["key"],"secret": button["secret"],"access_key": button["access_key"],"access_secret": button["access_secret"],"media_platform": button["media_platform"],"posting_locations": button["posting_locations"]}
 
 
-                        ########## REQUEST REMOVE ACCOUNT
                         ## Get Reference of Request Removal Button
                         button_request_removal  = button["request_removal"]
 
@@ -245,7 +238,6 @@ def app():
                         if len(new_posting_locations)==1 and new_posting_locations[0] == "":
                             new_posting_locations = []
 
-
                         ## Look for changes in account details, update the settings file if found
                         elif found_difference or len(new_posting_locations) != 0:
                             account_to_update = Account(name=button_data["name"])
@@ -261,14 +253,12 @@ def app():
                             ## Update the account
                             account_to_update.update(display_name=button_data["display_name"], key=button_data["key"], secret=button_data["secret"], access_key=button_data["access_key"], access_secret=button_data["access_secret"], media_platform=button_data["media_platform"], posting_locations=button_data["posting_locations"])
 
-
                             st.success(f"Please Restart the Application & Refresh the page")
-                            
+
                 except Exception as e:
                     pass
-                
 
-                ########## CREATE NEW ACCOUNT
+                ########## CREATE NEW MEDIA ACCOUNT
                 #####
                 try:
                     if new_account['name'] != "":
@@ -278,3 +268,87 @@ def app():
 
                 except Exception as e:
                     print(e)
+               
+                
+                ########## GLOBAL MENTIONS
+                #####
+                if global_mentions:
+
+                    ##### INITIALIZE
+                    current_global_mentions = ast.literal_eval(settings.get_setting_value(setting="global_mention_ids"))
+                    mention_keys = list(global_mentions.keys())
+                    mention_values = list(global_mentions.values())
+                    global_mention_was_updated = False
+                    global_mention_was_created = False
+
+                    try: 
+
+                        ## Loop on Global Mention Buttons
+                        for index, key in enumerate(mention_keys):
+
+                            ## Platform Mentions for this Global Mention
+                            local_platform_mentions = mention_values[index][1]
+
+                            ##### REMOVE
+                            for index2, platform_mention in enumerate(local_platform_mentions):                            
+                                if "" in platform_mention:        
+
+                                    ## Remove Platform Mention
+                                    local_platform_mentions.pop(index2)
+
+                                    ## Remove Platform Mention from Global Mention
+                                    current_global_mentions[key] = local_platform_mentions
+
+                                    ## Log Changes
+                                    global_mention_was_updated = True
+                                    st.markdown(f"Removed platform mention from {key}")
+
+                            ## Remove Global ID if Empty or no Platform Mentions
+                            if mention_values[index][0] == "" or len(local_platform_mentions) == 0:
+                                del current_global_mentions[key]
+                                global_mention_was_updated = True
+                                st.markdown(f"Removed `{key}` from global mentions")
+                                continue
+        
+
+                            ##### NEW
+                            ## Look for new global mention id
+                            elif not key in current_global_mentions.keys():
+                            
+                                ## A New Global Mention!
+                                current_global_mentions[key] = global_mentions[key]
+
+                                ## Write to Settings
+                                settings.set_setting_value(setting="global_mention_ids", value=current_global_mentions)
+
+                                ## Display Success Message
+                                st.markdown(f"Global Mention ({key}) was Added")
+
+                            ##### UPDATE    
+                            else:
+                                    
+                                ## Check for updates in global mention
+                                if list(mention_values[index]) != current_global_mentions[key]:
+
+                                    ## Update Global Mention
+                                    current_global_mentions[key] = mention_values[index]
+
+                                    ## Display Success Message
+                                    st.markdown(f"Global Mention ({key}) was updated : `{[key, mention_values[index]]}`")
+
+                                    ## Mark as Changed
+                                    global_mention_was_updated = True
+
+                        ## Update Global Mention if any changes were made
+                        if global_mention_was_updated:
+
+                            ## Write to Settings
+                            settings.set_setting_value(setting="global_mention_ids", value=current_global_mentions)
+
+                            ## Display Success Message
+                            st.success(settings.global_mentions_updated_message)
+
+                    except Exception as e:
+                        print(e)
+                        pass
+

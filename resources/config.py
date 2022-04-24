@@ -13,6 +13,8 @@
 import os
 import pathlib
 import configparser
+import ast
+
 
 from resources.crypt import Crypt, Key
 from resources.utility import string_to_list_of_dictionaries
@@ -38,10 +40,6 @@ cfg.read(configpath)                                                            
 
 
 
-
-
-
-
 #  _____ _                         
 # /  __ \ |                        
 # | /  \/ | __ _ ___ ___  ___  ___ 
@@ -60,26 +58,15 @@ class settings_core:
         self.current_path = current_path                         
         self.saved_path = str(self.current_path) + "saved/"                                       
 
-
-
         ##### STORAGE
         self.published_posts_file = cfg.get("storage","posts_file")
         self.published_posts_file_location = "saved/" + self.published_posts_file
         self.published_posts_file_location_full = current_path + self.published_posts_file
-
-
-
         self.scheduled_posts_file = cfg.get("storage","scheduled_posts_file")
         self.scheduled_posts_file_location = "saved/" + self.scheduled_posts_file
         self.scheduled_posts_file_location_full = current_path + self.scheduled_posts_file # This needs to be changed for S3 support
-
-
-
         self.uploaded_media_dir = cfg.get("storage","uploaded_media_dir")
         self.full_uploaded_media_dir = self.saved_path + self.uploaded_media_dir
-
-        
-
 
         ##### ENCRYPTION
         self.key_location = cfg.get("encryption","hidden_key_location")
@@ -106,28 +93,29 @@ class settings_core:
             print('user needs to setup initial key')
         
 
-        ##### VALID ENCRYPTION    
+        ## Valid Encryption Key
         if self.crypt_setup: 
 
             ##### ACCOUNTS
             media_accounts_temp = cfg.get("accounts","media_accounts")
             if media_accounts_temp != "None":
-                self.media_accounts = string_to_list_of_dictionaries(self.get_setting_value("accounts", "media_accounts"))
+                self.media_accounts = string_to_list_of_dictionaries(self.get_setting_value(category="accounts", setting="media_accounts"))
             else:
                 self.media_accounts = None
 
             
             ##### S3 CREDENTIALS
-            self.s3_access = self.get_setting_value("accounts", "hidden_s3_access")
-            self.s3_secret = self.get_setting_value("accounts", "hidden_s3_secret")
-            self.s3_endpoint = self.get_setting_value("accounts", "hidden_s3_endpoint")
-            self.s3_bucket = self.get_setting_value("accounts", "hidden_s3_bucket")
+            self.s3_access = self.get_setting_value(category="accounts", setting="hidden_s3_access")
+            self.s3_secret = self.get_setting_value(category="accounts", setting="hidden_s3_secret")
+            self.s3_endpoint = self.get_setting_value(category="accounts", setting="hidden_s3_endpoint")
+            self.s3_bucket = self.get_setting_value(category="accounts", setting="hidden_s3_bucket")
 
+            ##### S3 SETUP
             self.storage = Storage(self.s3_access, self.s3_secret, self.s3_endpoint, self.s3_bucket)
 
 
             ##### Global Mention IDs
-            self.global_mention_ids = self.get_setting_value("posting", "global_mention_ids")
+            self.global_mention_ids = ast.literal_eval(self.get_setting_value(category="posting", setting="global_mention_ids"))
 
         else:
             self.media_accounts = None
@@ -141,7 +129,10 @@ class settings_core:
         self.no_posts_description = cfg.get("app","no_posts_description")
         self.post_not_scheduled_for_reason_time_in_past = cfg.get("app","post_not_scheduled_for_reason_time_in_past")
         self.value_redaction_message = cfg.get("app", "value_redaction_message")
-
+        self.new_gid_mention_platform_message = cfg.get("app", "new_gid_mention_platform_message")
+        self.new_gid_mention_platform_id_message = cfg.get("app", "new_gid_mention_platform_id_message")
+        self.new_global_id_message = cfg.get("app", "new_global_id_message")
+        self.global_mentions_updated_message = cfg.get("app", "global_mentions_updated_message")
 
         ##### PERFORMANCE
         self.posts_cache_time = float(cfg.get("performance","posts_cache_time"))
@@ -152,10 +143,10 @@ class settings_core:
         self.supported_video_types = cfg.get("media","supported_video_types").split(",")
         self.supported_audio_types = cfg.get("media","supported_audio_types").split(",")
 
-
         ##### POSTING
         self.utc_timezones = cfg.get("posting","utc_timezones").split(",")
         self.default_timezone = cfg.get("posting","default_timezone")
+
 
 
     def reload_config(self):
@@ -178,21 +169,59 @@ class settings_core:
             print(e)
             return None
 
-    ##### GET ALL SETTINGS CATEGORIES
+    ########## GET ALL SETTINGS CATEGORIES
+    #####
     def get_all_setting_categories(self):
         return cfg.sections()
 
+    
 
+    ########## GET SETTING CATEGORY
+    #####
+    def get_setting_category(self, setting):
+        """
+        Returns the category of a setting
+        """
 
-    ##### GET ALL SETTINGS IN CATEGORY
+        ## Initialize
+        cat = None
+
+        ## Look through Categories
+        for category in self.get_all_setting_categories():
+
+            ## Get options in Category 
+            options = cfg.options(category)
+        
+            ## Look for match in category
+            if setting in cfg.options(category):
+                cat = category
+                break
+        
+        ## Return
+        return cat
+
+        
+
+    ########## GET ALL SETTINGS IN CATEGORY
+    #####
     def get_all_settings_in_category(self,category):
         return cfg.options(category)
 
 
 
-    ##### GET SETTING VALUE
-    def get_setting_value(self,category,setting):
+    ########## GET SETTING VALUE
+    #####
+    def get_setting_value(self,category=None,setting=None):
 
+        ## If no setting provided, return None        
+        if setting == None:
+            return None
+
+        ## If no category is specified, find it
+        if category == None:
+            category = self.get_setting_category(setting)
+        
+        ## Get setting value
         value = cfg.get(category,setting)
         
         ## Decrypt if encrypted
@@ -202,16 +231,35 @@ class settings_core:
         return value
 
 
-    ##### SET SETTING VALUE
-    def set_setting_value(self,category,setting,value):
+
+    ########## SET SETTING VALUE
+    #####
+    def set_setting_value(self,category=None,setting=None,value=None):
+
+        ## If no setting provided, return None        
+        if setting == None:
+            return None
+
+        ## If no category is specified, find it
+        if category == None:
+            category = self.get_setting_category(setting)
+
+        ## Encrypt if encrypted (soon)
+
+
+        ## Set setting value
         cfg.set(category,setting,value)
+
+        ## Write to config file
         with open(configpath, 'w') as configfile:
             cfg.write(configfile)
 
+        ## Reload config
         self.reload_config()
 
 
-    ##### CREATE NEW SETTING
+    ########## CREATE NEW SETTING
+    #####
     def create_new_setting(self,category,setting,value):
         cfg.add_section(category)
         cfg.set(category,setting,value)
@@ -221,7 +269,8 @@ class settings_core:
         self.reload_config()
     
 
-    ##### CREATE NEW CATEGORY
+    ########## CREATE NEW CATEGORY
+    #####
     def create_new_category(self,category):
         cfg.add_section(category)
         with open(configpath, 'w') as configfile:
