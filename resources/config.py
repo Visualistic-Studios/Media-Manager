@@ -14,12 +14,13 @@ import os
 import pathlib
 import configparser
 import ast
+import pickle
 
 
 from resources.crypt import Crypt, Key
 from resources.utility import string_to_list_of_dictionaries
 from resources.database import Storage
-
+from resources.global_mentions import global_mentions_manager
 
 
 #  _   _            _       _     _           
@@ -59,13 +60,13 @@ class settings_core:
         self.saved_path = str(self.current_path) + "saved/"                                       
 
         ##### STORAGE
-        self.published_posts_file = cfg.get("storage","posts_file")
+        self.published_posts_file = cfg.get("storage","encrypted_posts_file")
         self.published_posts_file_location = "saved/" + self.published_posts_file
         self.published_posts_file_location_full = current_path + self.published_posts_file
-        self.scheduled_posts_file = cfg.get("storage","scheduled_posts_file")
+        self.scheduled_posts_file = cfg.get("storage","encrypted_scheduled_posts_file")
         self.scheduled_posts_file_location = "saved/" + self.scheduled_posts_file
         self.scheduled_posts_file_location_full = current_path + self.scheduled_posts_file # This needs to be changed for S3 support
-        self.uploaded_media_dir = cfg.get("storage","uploaded_media_dir")
+        self.uploaded_media_dir = cfg.get("storage","encrypted_uploaded_media_dir")
         self.full_uploaded_media_dir = self.saved_path + self.uploaded_media_dir
 
         ##### ENCRYPTION
@@ -74,9 +75,11 @@ class settings_core:
 
         ## Has encryption been setup?
         if os.path.isfile(self.key_location):
+
             # Yes, get key & block size
             self.encryption_key = Key(self.key_location)
             self.block_size = self.get_setting_value("encryption", "block_size")
+
             # No, set block size
             if str(self.block_size) == "None":
                 self.set_setting_value("encryption", "block_size", "4096")
@@ -93,36 +96,57 @@ class settings_core:
             print('user needs to setup initial key')
         
 
-        ## Valid Encryption Key
+        ########## ENCRYPTED
+        #####
         if self.crypt_setup: 
 
             ##### ACCOUNTS
-            media_accounts_temp = cfg.get("accounts","media_accounts")
+            media_accounts_temp = cfg.get("accounts","encrypted_media_accounts")
             if media_accounts_temp != "None":
-                self.media_accounts = string_to_list_of_dictionaries(self.get_setting_value(category="accounts", setting="media_accounts"))
+                self.media_accounts = string_to_list_of_dictionaries(self.get_setting_value(category="accounts", setting="encrypted_media_accounts"))
             else:
                 self.media_accounts = None
 
+            self.supported_media_platforms = cfg.get("accounts","encrypted_supported_media_platforms").split(",")
             
             ##### S3 CREDENTIALS
-            self.s3_access = self.get_setting_value(category="accounts", setting="hidden_s3_access")
-            self.s3_secret = self.get_setting_value(category="accounts", setting="hidden_s3_secret")
-            self.s3_endpoint = self.get_setting_value(category="accounts", setting="hidden_s3_endpoint")
-            self.s3_bucket = self.get_setting_value(category="accounts", setting="hidden_s3_bucket")
+            self.s3_access = self.get_setting_value(category="accounts", setting="encrypted_s3_access", deny_plaintext_setting=True)
+            self.s3_secret = self.get_setting_value(category="accounts", setting="encrypted_s3_secret", deny_plaintext_setting=True)
+            self.s3_endpoint = self.get_setting_value(category="accounts", setting="encrypted_s3_endpoint", deny_plaintext_setting=True)
+            self.s3_bucket = self.get_setting_value(category="accounts", setting="encrypted_s3_bucket", deny_plaintext_setting=True)
 
             ##### S3 SETUP
             self.storage = Storage(self.s3_access, self.s3_secret, self.s3_endpoint, self.s3_bucket)
 
 
-            ##### Global Mention IDs
-            self.global_mention_ids = ast.literal_eval(self.get_setting_value(category="posting", setting="global_mention_ids"))
+            ##### GLOBAL MENTIONS
+            local_global_mentions = self.get_setting_value(category="posting", setting="encrypted_global_mentions", deny_plaintext_setting=True)
+
+            ## No Current Global Manager
+            if local_global_mentions == "None": # No current setting, 
+
+                ## Create new Global Mentions Manager
+                self.global_mentions = global_mentions_manager()
+
+                ## Write Manager to Settings
+                self.set_setting_value(category="posting", setting="encrypted_global_mentions", value=pickle.dumps(self.global_mentions))
+            
+            ## If Setting is invalid
+            elif not local_global_mentions:
+
+                ## Couldn't Decrypt Setting
+                self.global_mentions = None
+
+            ## Setting Valid
+            else:
+                
+                ## Load Global Mentions Manager Object
+                self.global_mentions = pickle.loads(ast.literal_eval(local_global_mentions))
 
         else:
             self.media_accounts = None
             self.storage = None
-
-
-        self.supported_media_platforms = cfg.get("accounts","supported_media_platforms").split(",")
+        
 
         ##### APPLICATION
         self.no_posts_title = cfg.get("app","no_posts_title")
@@ -135,17 +159,17 @@ class settings_core:
         self.global_mentions_updated_message = cfg.get("app", "global_mentions_updated_message")
 
         ##### PERFORMANCE
-        self.posts_cache_time = float(cfg.get("performance","posts_cache_time"))
-        self.page_cache_time = float(cfg.get("performance","page_cache_time"))
+        self.posts_cache_time = float(cfg.get("performance","encrypted_posts_cache_time"))
+        self.page_cache_time = float(cfg.get("performance","encrypted_page_cache_time"))
 
         ##### MEDIA
-        self.supported_image_types = cfg.get("media","supported_image_types").split(",")
-        self.supported_video_types = cfg.get("media","supported_video_types").split(",")
-        self.supported_audio_types = cfg.get("media","supported_audio_types").split(",")
+        self.supported_image_types = cfg.get("media","encrypted_supported_image_types").split(",")
+        self.supported_video_types = cfg.get("media","encrypted_supported_video_types").split(",")
+        self.supported_audio_types = cfg.get("media","encrypted_supported_audio_types").split(",")
 
         ##### POSTING
-        self.utc_timezones = cfg.get("posting","utc_timezones").split(",")
-        self.default_timezone = cfg.get("posting","default_timezone")
+        self.utc_timezones = cfg.get("posting","encrypted_utc_timezones").split(",")
+        self.default_timezone = cfg.get("posting","encrypted_default_timezone")
 
 
 
@@ -154,19 +178,27 @@ class settings_core:
 
 
     def read_encrypted_setting(self, setting_value):
+        """
+        Decrypts an input setting value. Does not read from file, you can input any encrypted value. 
+        
+        Rejects Plaintext & Failed Decryptions by returning None if input & output are the same. 
+        """
         try:
+            ## Decrypt 
             return self.crypt.decrypt(setting_value.encode()).decode()
         except Exception as e:
-            print(e)
+            ## Decryption Failed
             return None
 
-    def write_encrypted_setting(self, category, setting, value):
+
+
+    def set_setting_value(self, category, setting, value):
         try:
             value = self.crypt.encrypt(str(value).encode())
             self.set_setting_value(category, setting, value.decode())
             self.reload_config()
         except Exception as e:
-            print(e)
+            print(f"Exception while running set_encrypted_value: {str(e)}")
             return None
 
     ########## GET ALL SETTINGS CATEGORIES
@@ -211,7 +243,7 @@ class settings_core:
 
     ########## GET SETTING VALUE
     #####
-    def get_setting_value(self,category=None,setting=None):
+    def get_setting_value(self,category=None,setting=None, auto_decrypt=True, deny_encrypted_setting=False, deny_plaintext_setting=False):
 
         ## If no setting provided, return None        
         if setting == None:
@@ -223,11 +255,46 @@ class settings_core:
         
         ## Get setting value
         value = cfg.get(category,setting)
-        
-        ## Decrypt if encrypted
-        if list(value)[-1] == "=":
-            value = self.read_encrypted_setting(value)
 
+        ## Flag Initial Values
+        if value == "None":
+            return "None"
+
+        ## Check if encrypted
+        if setting.startswith("encrypted_"):
+
+            ## Try to decrypt the value. If not none, it's encrypted. 
+            decrypted_value = self.read_encrypted_setting(value)
+
+            ## Valid encrypted setting
+            if decrypted_value:
+
+                ## Value encrypted when shouldn't be
+                if deny_encrypted_setting == False:
+
+                    ## Auto Decrypt
+                    if auto_decrypt:
+                        value = decrypted_value
+
+                ## Deny Encrypted Setting if Found
+                else:
+                    return None
+            
+            ## If value is plaintext 
+            else:
+
+                ## Value already decrypted. Assuming tampering
+                if deny_plaintext_setting==True:
+                    return None
+
+                ## Value already decrypted. Assuming default values
+                else:
+                    return value
+
+        ## Deny Plaintext if Found
+        elif deny_plaintext_setting:
+            return None        
+    
         return value
 
 
@@ -245,7 +312,8 @@ class settings_core:
             category = self.get_setting_category(setting)
 
         ## Encrypt if encrypted (soon)
-
+        if setting.startswith("encrypted_"):
+            value = self.crypt.encrypt(str(value).encode()).decode()
 
         ## Set setting value
         cfg.set(category,setting,value)
@@ -291,8 +359,6 @@ class settings_core:
                 accounts.append(account)
         
         return accounts
-
-
 
 
 

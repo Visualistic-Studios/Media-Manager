@@ -25,7 +25,7 @@ from resources.config import settings_core
 # -----------------------------------------------------------------------     
 
 settings = settings_core()
-
+from resources.global_mentions import global_mention
 
 
 #   ___              _ _           _   _             
@@ -68,7 +68,7 @@ def app():
     if not settings.new_gid_mention_platform_id_message == gID_platform_data_id and not settings.new_gid_mention_platform_message == gID_platform_data and not gID_input == settings.new_global_id_message:
 
         # Log Data
-        return gID_input, [[gID_platform_data,gID_platform_data_id]]
+        return global_mention(gID_input,[[gID_platform_data,gID_platform_data_id]])
 
     ## No New Data
     else:

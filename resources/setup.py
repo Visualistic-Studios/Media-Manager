@@ -154,10 +154,10 @@ def intialize_s3(s3_access, s3_secret, s3_endpoint, s3_bucket):
     try: 
         from resources.config import settings_core
         settings = settings_core()
-        settings.write_encrypted_setting("accounts","s3_access",s3_access)
-        settings.write_encrypted_setting("accounts","s3_secret",s3_secret)
-        settings.write_encrypted_setting("accounts","s3_endpoint",s3_endpoint)
-        settings.write_encrypted_setting("accounts","s3_bucket",s3_bucket)
+        settings.set_setting_value("accounts","encrypted_s3_access",s3_access)
+        settings.set_setting_value("accounts","encrypted_s3_secret",s3_secret)
+        settings.set_setting_value("accounts","encrypted_s3_endpoint",s3_endpoint)
+        settings.set_setting_value("accounts","encrypted_s3_bucket",s3_bucket)
         return True
     except: 
         return False

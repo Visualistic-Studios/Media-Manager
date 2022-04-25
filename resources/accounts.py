@@ -68,7 +68,7 @@ class Account:
         data_loaded = False
 
         ## Load Account Data from Settings
-        accounts = string_to_list_of_dictionaries(settings.get_setting_value("accounts", "media_accounts"))
+        accounts = string_to_list_of_dictionaries(settings.get_setting_value("accounts", "encrypted_media_accounts"))
 
         for account in accounts:
             if account["name"] == self.data['name']:
@@ -134,9 +134,9 @@ class Account:
         if accounts:
             accounts.append(data)
             # save new accounts
-            settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
+            settings.set_setting_value("accounts","encrypted_media_accounts",str(accounts))
         else:
-            settings.write_encrypted_setting("accounts","media_accounts",str([data]))
+            settings.set_setting_value("accounts","encrypted_media_accounts",str([data]))
 
         
 
@@ -156,7 +156,7 @@ class Account:
                 account["posting_locations"] = self.posting_location_to_string(posting_locations)
                 break
         # save new accounts
-        settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
+        settings.set_setting_value("accounts","encrypted_media_accounts",str(accounts))
 
     
     ########## REMOVE
@@ -175,9 +175,9 @@ class Account:
 
             ## Save New Accounts
             if len(accounts) > 0:
-                settings.write_encrypted_setting("accounts","media_accounts",str(accounts))
+                settings.set_setting_value("accounts","encrypted_media_accounts",str(accounts))
             else:
-                settings.set_setting_value("accounts","media_accounts","None")
+                settings.set_setting_value("accounts","encrypted_media_accounts","None")
             print('account removed')
 
             return True
@@ -317,15 +317,7 @@ class DiscordAccount(Account):
             content =  f"**{post_object.title}**"
         else:
             content = f"**{post_object.title}**\n\n{post_object.description}"
-
-
-        
-        # ##### PUT DATA TOGETHER
-        # post_data = {
-        #     "content": content,
-        #     #"allowed_mentions" : {"users": ["68751"] }, 
-        # }                
-
+       
         return content
 
 

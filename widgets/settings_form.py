@@ -4,6 +4,7 @@ import ast
 from resources.config import settings_core
 from resources.accounts import Account
 from widgets import global_mentions as global_mentions_widget
+from resources.global_mentions import global_mentions_manager as gmm
 
 settings = settings_core()
 
@@ -30,6 +31,7 @@ def app():
     setting_buttons_dict = {}
     new_account = {}
     setting_display_names = {}
+    global_mentions_manager = settings.global_mentions
 
     ## Main Settings Form
     with st.form("Settings"):
@@ -62,14 +64,13 @@ def app():
 
                         ########## MEDIA ACCOUNTS
                         #####
-                        elif setting == "media_accounts": 
+                        elif setting == "encrypted_media_accounts": 
 
                             ## Initialize
                             media_accounts = settings.media_accounts 
                             media_account_button_list = []
                             if media_accounts != None:
                                 st.markdown("**Media accounts**")
-
 
                                 ## Load data for each account
                                 for media_account in media_accounts:
@@ -134,17 +135,19 @@ def app():
 
                         # ########## GLOBAL MENTION IDs
                         # #####
-                        elif setting == "global_mention_ids":
+                        elif setting == "encrypted_global_mentions":
 
                             ## Global Mention Return
                             global_mentions = global_mentions_widget.app() # Returns List of Dicts for Global Mentions
+
+                        
 
                         ########## REGULAR SETTINGS
                         #####
                         else:
                             
                             ## Define Setting Type (Default/Hidden)
-                            setting_type = "password" if setting.lower().startswith("hidden_") else "default"
+                            setting_type = "password" if setting.lower().startswith("hidden_") or setting.startswith("encrypted_") else "default"
 
                             ## Retrieve Display Name
                             display_name = setting_display_names[setting][0] if setting in setting_display_names.keys() else setting
@@ -170,7 +173,7 @@ def app():
                 for setting in setting_buttons_dict.keys():
 
                     ## Skip Display Names
-                    if setting.startswith("display_name_") or setting == "media_accounts" or setting == "global_mention_ids":
+                    if setting.startswith("display_name_") or setting == "encrypted_media_accounts" or setting == "encrypted_global_mentions":
                         continue
 
                     ## Initialize Valid Settings
@@ -272,83 +275,13 @@ def app():
                 
                 ########## GLOBAL MENTIONS
                 #####
+
+                ## Check Validity
                 if global_mentions:
 
-                    ##### INITIALIZE
-                    current_global_mentions = ast.literal_eval(settings.get_setting_value(setting="global_mention_ids"))
-                    mention_keys = list(global_mentions.keys())
-                    mention_values = list(global_mentions.values())
-                    global_mention_was_updated = False
-                    global_mention_was_created = False
+                    ## Look for Differences
+                    if global_mentions_manager.diff(global_mentions):
 
-                    try: 
-
-                        ## Loop on Global Mention Buttons
-                        for index, key in enumerate(mention_keys):
-
-                            ## Platform Mentions for this Global Mention
-                            local_platform_mentions = mention_values[index][1]
-
-                            ##### REMOVE
-                            for index2, platform_mention in enumerate(local_platform_mentions):                            
-                                if "" in platform_mention:        
-
-                                    ## Remove Platform Mention
-                                    local_platform_mentions.pop(index2)
-
-                                    ## Remove Platform Mention from Global Mention
-                                    current_global_mentions[key] = local_platform_mentions
-
-                                    ## Log Changes
-                                    global_mention_was_updated = True
-                                    st.markdown(f"Removed platform mention from {key}")
-
-                            ## Remove Global ID if Empty or no Platform Mentions
-                            if mention_values[index][0] == "" or len(local_platform_mentions) == 0:
-                                del current_global_mentions[key]
-                                global_mention_was_updated = True
-                                st.markdown(f"Removed `{key}` from global mentions")
-                                continue
-        
-
-                            ##### NEW
-                            ## Look for new global mention id
-                            elif not key in current_global_mentions.keys():
-                            
-                                ## A New Global Mention!
-                                current_global_mentions[key] = global_mentions[key]
-
-                                ## Write to Settings
-                                settings.set_setting_value(setting="global_mention_ids", value=current_global_mentions)
-
-                                ## Display Success Message
-                                st.markdown(f"Global Mention ({key}) was Added")
-
-                            ##### UPDATE    
-                            else:
-                                    
-                                ## Check for updates in global mention
-                                if list(mention_values[index]) != current_global_mentions[key]:
-
-                                    ## Update Global Mention
-                                    current_global_mentions[key] = mention_values[index]
-
-                                    ## Display Success Message
-                                    st.markdown(f"Global Mention ({key}) was updated : `{[key, mention_values[index]]}`")
-
-                                    ## Mark as Changed
-                                    global_mention_was_updated = True
-
-                        ## Update Global Mention if any changes were made
-                        if global_mention_was_updated:
-
-                            ## Write to Settings
-                            settings.set_setting_value(setting="global_mention_ids", value=current_global_mentions)
-
-                            ## Display Success Message
-                            st.success(settings.global_mentions_updated_message)
-
-                    except Exception as e:
-                        print(e)
-                        pass
-
+                        ## Save & Provide Feedback
+                        global_mentions.save()
+                        st.success(settings.global_mentions_updated_message)
