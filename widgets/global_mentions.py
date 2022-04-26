@@ -115,8 +115,8 @@ def app():
                                     with col2:
                                         new_gID_platform_data_id = st.text_input(label="Platform ID", value=settings.new_gid_mention_platform_id_message, key=f"new_gid_mention_{global_mention.id}_new_platform_ID_{index2}") 
 
-                                    ## Not Default Values & Not Empty
-                                    if not new_gID_platform_data == settings.new_gid_mention_platform_message or not new_gID_platform_data == "" and not new_gID_platform_data_id == settings.new_gid_mention_platform_id_message and not new_gID_platform_data_id == "" :
+                                    ## Check registration & add if valid
+                                    if global_mention.register_platform_check(new_gID_platform_data, new_gID_platform_data_id):
                                         platform_mentions.append([new_gID_platform_data, new_gID_platform_data_id])
 
                         else:

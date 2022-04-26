@@ -23,6 +23,8 @@ import pickle
 
 
 
+
+
 #  _____ _                         
 # /  __ \ |                        
 # | /  \/ | __ _ ___ ___  ___  ___ 
@@ -273,13 +275,56 @@ class global_mention:
 
     ########## ADD PLATFORM MENTION
     #####
+    def get_registered_platforms(self):
+        """
+        Gets all registred platform names from platform mentions
+        """
+
+        return [item[0] for item in self.platform_mentions]
+        
+
+
+    ########## ADD PLATFORM MENTION
+    #####
+    def register_platform_check(self, platform, platform_id):
+        """
+        Ensures that platform registration submission meets requirements. 
+        """
+
+        from resources.config import settings_core
+        settings = settings_core()
+
+        ## Not Empty & Not Default Values
+        if not platform == settings.new_gid_mention_platform_message or not platform_id == "" and not platform == settings.new_gid_mention_platform_id_message and not platform_id == "" :
+
+            ## Platform not already registered 
+            if not platform in self.get_registered_platforms():
+
+                return True
+
+        ## Default Values / Platform already registered
+        return False
+
+
+
+    ########## ADD PLATFORM MENTION
+    #####
     def add_platform_mention(self, platform, platform_id):
         """
         Add platform mention
         """
 
-        self.platform_mentions.insert(0, [platform, platform_id])
+        ## Check requirements
+        if self.register_platform_check(platform, platform_id):
 
+            ## Submit
+            self.platform_mentions.insert(0, [platform, platform_id])
+
+            ## Success
+            return True
+        else:
+            ## Rejected
+            return True
 
 
     ########## ADD PLATFORM MENTION
