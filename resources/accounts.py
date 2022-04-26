@@ -62,6 +62,8 @@ class Account:
 
         self.posting_locations = None
 
+
+
     ########## LOAD DATA
     #####
     def load_data(self):
@@ -77,10 +79,10 @@ class Account:
                 break
         
         self.posting_locations = self.data['posting_locations'].split("|_|")
-        
-
+    
         return data_loaded
         
+
 
     ########## DATA TO LIST
     #####
@@ -96,6 +98,8 @@ class Account:
         posting_locations = data["posting_locations"].replace(",", "|_|")
 
         return f"{display_name}|-|{name}|-|{key}|-|{secret}|-|{access_key}|-|{access_secret}|-|{media_platform}|-|{posting_locations}"
+
+
 
     ########## POSTING LOCATION TO STRING
     #####
@@ -113,6 +117,7 @@ class Account:
                 posting_locations_string += loc + "|_|"
 
         return posting_locations_string
+
 
 
     ########## REGISTER
@@ -159,6 +164,7 @@ class Account:
         settings.set_setting_value("accounts","encrypted_media_accounts",str(accounts))
 
     
+    
     ########## REMOVE
     #####
     def remove(self):
@@ -187,6 +193,7 @@ class Account:
             return False
 
     
+
     ########## CONNECT TO SOCIAL MEDIA PROVIDER
     #####
     def connect(self):
@@ -194,6 +201,7 @@ class Account:
         Creates a connection to the social media provider.
         """
         raise NotImplementedError
+
 
 
     ########## DISCONNECT FROM SOCIAL MEDIA PROVIDER
@@ -205,6 +213,7 @@ class Account:
         raise NotImplementedError
 
 
+
     ########## FORMAT POST DATA
     #####
     def format_post_data(self, post_object):
@@ -212,6 +221,32 @@ class Account:
         Formats a post object for posting to the social media provider.
         """
         raise NotImplementedError
+
+
+
+    ########## BUILD MENTIONS LIST
+    #####
+    def build_mentions_list(self, post_content):
+        """
+        Used to build a list of mentions.
+        """
+
+        working_post_content = post_content.split(settings.mention_tag_end)
+
+        mentions_list = []
+
+        ## Find & extract mentions
+        for entry in working_post_content:
+
+            ## Find mention tag
+            if settings.mention_tag_start in entry:
+
+                ## Extract mention
+                mention_name = entry.split(settings.mention_tag_start)[1]
+                mentions_list.append(mention_name)
+
+        return mentions_list
+
 
     
     ########## PUBLISH POST
@@ -223,6 +258,7 @@ class Account:
         raise NotImplementedError
 
 
+
     ########## PUBLISH POSTS
     #####
     def publish_posts(self, post_object):
@@ -230,6 +266,7 @@ class Account:
         Creates a post from post object.
         """
         raise NotImplementedError
+
 
 
     ########## DELETE POST
@@ -240,6 +277,8 @@ class Account:
         """
         ## Parent function here will clean up the database & associated files
         pass
+
+
 
     ########## IS READY
     #####
@@ -324,7 +363,70 @@ class DiscordAccount(Account):
     ########## BUILD MENTIONS LIST
     #####
     def build_mentions_list(self, post_content):
-        return {"users": []}
+        """
+        Used to build a list of mentions.
+        """
+
+        mentions_list = Account.build_mentions_list(self, post_content)
+
+        ## Return mentions list        
+        return {"users": mentions_list}
+
+
+
+    def replace_mentions(self, post_content, mentions_list):
+        """
+        Replaces mentions in a post with the actual mention string.
+        """
+
+        ## Initialize mentions list
+        mentions_dict = mentions_list
+        mentions_list = mentions_list['users']
+
+        ## Replace all mentions with the proper formatting.
+        for postmention in mentions_list: 
+            
+            ## Look for mention in global mentions
+            mention_index = settings.global_mentions.find_global_mention_index(postmention)
+
+            ## If global mention found
+            if mention_index or mention_index==0:
+                if mention_index >=0:
+                    
+                    ## Get Global Mention object
+                    global_mention = settings.global_mentions.entries[mention_index]
+
+                    ## Get all Platform Mentions
+                    global_mention_platform_mentions = global_mention.platform_mentions
+
+                    ## For each platform mention
+                    for mention in global_mention_platform_mentions:
+                        
+                        ## Look for platform mention that matches this platform
+                        if mention[0] == "discord":
+                            
+                            ## Update Post Content
+                            post_content = post_content.replace(f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}", f"<@&{mention[1]}>")
+
+                            ## Update Mentions Dictionary
+                            mentions_dict['users'].remove(postmention)
+                            mentions_dict['users'].append(mention[1])
+
+                            break
+
+                ## No global mention found, assume it's a local ID
+                else:
+                    ## Replace 
+                    post_content = post_content.replace(f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}", f"<@&{postmention}>")
+                    continue
+            else:
+
+                ## Replace 
+                post_content = post_content.replace(f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}", f"<@&{postmention}>")
+                continue
+
+        ## Return updated post content, updated mentions list
+        return [post_content, mentions_dict]
 
         
     ########## PUBLISH POST
@@ -354,9 +456,19 @@ class DiscordAccount(Account):
 
             ## Create proper Mentions
             mentions = self.build_mentions_list(loc_data['content'])
-            if mentions:
-                loc_data['allowed_mentions'] = self.build_mentions_list(loc_data['content'])
 
+            if mentions:
+
+                ## Update Post Content
+                updated_mentions_data = self.replace_mentions(content, mentions)
+                updated_post_content = updated_mentions_data[0]
+                updated_mentions = updated_mentions_data[1]
+
+                ## Log Updated Content
+                loc_data['content'] = updated_post_content
+                loc_data['allowed_mentions'] = updated_mentions
+
+            
             ## Intialize the Webhook
             webhook = DiscordWebhook(**loc_data)
 

@@ -60,17 +60,17 @@ class settings_core:
         self.saved_path = str(self.current_path) + "saved/"                                       
 
         ##### STORAGE
-        self.published_posts_file = cfg.get("storage","encrypted_posts_file")
+        self.published_posts_file = self.get_setting_value("storage","encrypted_posts_file")
         self.published_posts_file_location = "saved/" + self.published_posts_file
         self.published_posts_file_location_full = current_path + self.published_posts_file
-        self.scheduled_posts_file = cfg.get("storage","encrypted_scheduled_posts_file")
+        self.scheduled_posts_file = self.get_setting_value("storage","encrypted_scheduled_posts_file")
         self.scheduled_posts_file_location = "saved/" + self.scheduled_posts_file
         self.scheduled_posts_file_location_full = current_path + self.scheduled_posts_file # This needs to be changed for S3 support
-        self.uploaded_media_dir = cfg.get("storage","encrypted_uploaded_media_dir")
+        self.uploaded_media_dir = self.get_setting_value("storage","encrypted_uploaded_media_dir")
         self.full_uploaded_media_dir = self.saved_path + self.uploaded_media_dir
 
         ##### ENCRYPTION
-        self.key_location = cfg.get("encryption","hidden_key_location")
+        self.key_location = self.get_setting_value("encryption","hidden_key_location")
         self.crypt = None
 
         ## Has encryption been setup?
@@ -101,13 +101,13 @@ class settings_core:
         if self.crypt_setup: 
 
             ##### ACCOUNTS
-            media_accounts_temp = cfg.get("accounts","encrypted_media_accounts")
+            media_accounts_temp = self.get_setting_value("accounts","encrypted_media_accounts")
             if media_accounts_temp != "None":
                 self.media_accounts = string_to_list_of_dictionaries(self.get_setting_value(category="accounts", setting="encrypted_media_accounts"))
             else:
                 self.media_accounts = None
 
-            self.supported_media_platforms = cfg.get("accounts","encrypted_supported_media_platforms").split(",")
+            self.supported_media_platforms = self.get_setting_value("accounts","encrypted_supported_media_platforms").split(",")
             
             ##### S3 CREDENTIALS
             self.s3_access = self.get_setting_value(category="accounts", setting="encrypted_s3_access", deny_plaintext_setting=True)
@@ -121,6 +121,8 @@ class settings_core:
 
             ##### GLOBAL MENTIONS
             local_global_mentions = self.get_setting_value(category="posting", setting="encrypted_global_mentions", deny_plaintext_setting=True)
+            self.mention_tag_start = self.get_setting_value(category="posting", setting="encrypted_mention_tag_start", deny_plaintext_setting=True)
+            self.mention_tag_end = self.get_setting_value(category="posting", setting="encrypted_mention_tag_end", deny_plaintext_setting=True)
 
             ## No Current Global Manager
             if local_global_mentions == "None": # No current setting, 
@@ -149,27 +151,27 @@ class settings_core:
         
 
         ##### APPLICATION
-        self.no_posts_title = cfg.get("app","no_posts_title")
-        self.no_posts_description = cfg.get("app","no_posts_description")
-        self.post_not_scheduled_for_reason_time_in_past = cfg.get("app","post_not_scheduled_for_reason_time_in_past")
-        self.value_redaction_message = cfg.get("app", "value_redaction_message")
-        self.new_gid_mention_platform_message = cfg.get("app", "new_gid_mention_platform_message")
-        self.new_gid_mention_platform_id_message = cfg.get("app", "new_gid_mention_platform_id_message")
-        self.new_global_id_message = cfg.get("app", "new_global_id_message")
-        self.global_mentions_updated_message = cfg.get("app", "global_mentions_updated_message")
+        self.no_posts_title = self.get_setting_value("app","no_posts_title")
+        self.no_posts_description = self.get_setting_value("app","no_posts_description")
+        self.post_not_scheduled_for_reason_time_in_past = self.get_setting_value("app","post_not_scheduled_for_reason_time_in_past")
+        self.value_redaction_message = self.get_setting_value("app", "value_redaction_message")
+        self.new_gid_mention_platform_message = self.get_setting_value("app", "new_gid_mention_platform_message")
+        self.new_gid_mention_platform_id_message = self.get_setting_value("app", "new_gid_mention_platform_id_message")
+        self.new_global_id_message = self.get_setting_value("app", "new_global_id_message")
+        self.global_mentions_updated_message = self.get_setting_value("app", "global_mentions_updated_message")
 
         ##### PERFORMANCE
-        self.posts_cache_time = float(cfg.get("performance","encrypted_posts_cache_time"))
-        self.page_cache_time = float(cfg.get("performance","encrypted_page_cache_time"))
+        self.posts_cache_time = float(self.get_setting_value("performance","encrypted_posts_cache_time"))
+        self.page_cache_time = float(self.get_setting_value("performance","encrypted_page_cache_time"))
 
         ##### MEDIA
-        self.supported_image_types = cfg.get("media","encrypted_supported_image_types").split(",")
-        self.supported_video_types = cfg.get("media","encrypted_supported_video_types").split(",")
-        self.supported_audio_types = cfg.get("media","encrypted_supported_audio_types").split(",")
+        self.supported_image_types = self.get_setting_value("media","encrypted_supported_image_types").split(",")
+        self.supported_video_types = self.get_setting_value("media","encrypted_supported_video_types").split(",")
+        self.supported_audio_types = self.get_setting_value("media","encrypted_supported_audio_types").split(",")
 
         ##### POSTING
-        self.utc_timezones = cfg.get("posting","encrypted_utc_timezones").split(",")
-        self.default_timezone = cfg.get("posting","encrypted_default_timezone")
+        self.utc_timezones = self.get_setting_value("posting","encrypted_utc_timezones").split(",")
+        self.default_timezone = self.get_setting_value("posting","encrypted_default_timezone")
 
 
 
@@ -366,6 +368,6 @@ class server_settings:
     
     def __init__(self):
 
-        self.processing_delay_in_seconds = int(cfg.get("server","processing_delay_in_seconds"))
+        self.processing_delay_in_seconds = int(cfg.get("server","encrypted_processing_delay_in_seconds"))
 
 
