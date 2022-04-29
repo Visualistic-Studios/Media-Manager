@@ -261,6 +261,27 @@ class global_mention:
         return self.platform_mentions[index][1]
 
 
+    ########## GET PLATFORM ID AT INDEX
+    #####
+    def get_platform_id_by_name(self, platform):
+        """
+        Gets the platform ID of the specified index
+        """
+
+        global_mention_platform_mentions = self.platform_mentions
+
+        ## For each platform mention
+        for mention in self.platform_mentions:
+            
+            ## Look for platform mention that matches this platform
+            if mention[0] == "discord":
+                
+                ## Return ID
+                return mention[1]
+
+        return None
+
+
 
     ########## GET PLATFORM AT INDEX
     #####

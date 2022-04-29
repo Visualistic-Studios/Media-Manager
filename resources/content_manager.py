@@ -48,6 +48,7 @@ class ContentManager:
         print('Account Manager started')
 
 
+
     ########### PUBLISH POSTS
     #####
     def publish_posts(self, post_objects, account_names, media_connections):
@@ -58,7 +59,7 @@ class ContentManager:
         ## Loop through all posts to publish
         for post in post_objects:
 
-            ## Get Account Name & Verify It
+            ## Get Account Name & Verify It Exists
             for account_name in account_names:
                 if account_name in media_connections.keys():
 
@@ -67,6 +68,9 @@ class ContentManager:
 
                     ## Validate Published Post
                     if published_post:
+
+                        #print('post return for success was:')
+                        post_id = published_post['id']
 
                         ## Save as Published
                         was_saved_as_published = post.save_as_published()
@@ -77,6 +81,7 @@ class ContentManager:
                         ## Log if Successful
                         if was_saved_as_published == True & was_removed_from_scheduled == True:
                             published_posts.append(post)
+
 
 
     ########## GET UNIQUE ACCOUNT NAMES FROM POST OBJECTS
@@ -96,6 +101,7 @@ class ContentManager:
                     requested_account_names_to_post_to.append(account)
 
         return requested_account_names_to_post_to
+
 
 
     ########## GET ACCOUNT CONNECTIONS

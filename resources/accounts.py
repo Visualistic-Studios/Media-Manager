@@ -353,7 +353,7 @@ class DiscordAccount(Account):
         if not post_object.title: 
             content = f"{post_object.description}"
         elif not post_object.description:
-            content =  f"**{post_object.title}**"
+            content =  f"{post_object.title}"
         else:
             content = f"**{post_object.title}**\n\n{post_object.description}"
        
@@ -374,61 +374,44 @@ class DiscordAccount(Account):
 
 
 
-    def replace_mentions(self, post_content, mentions_list):
+    ########## REPLACE MENTIONS
+    #####
+    def replace_mentions(self, post_content, mentions_dict):
         """
         Replaces mentions in a post with the actual mention string.
         """
-
+        
         ## Initialize mentions list
-        mentions_dict = mentions_list
-        mentions_list = mentions_list['users']
+        mentions_list = mentions_dict['users']
+        working_mentions_dict = {"users":[]}
 
         ## Replace all mentions with the proper formatting.
         for postmention in mentions_list: 
-            
+
             ## Look for mention in global mentions
             mention_index = settings.global_mentions.find_global_mention_index(postmention)
 
             ## If global mention found
-            if mention_index or mention_index==0:
-                if mention_index >=0:
-                    
-                    ## Get Global Mention object
-                    global_mention = settings.global_mentions.entries[mention_index]
+            if mention_index != None:     
+                
+                ## Get Global Mention object
+                global_mention = settings.global_mentions.entries[mention_index]
 
-                    ## Get all Platform Mentions
-                    global_mention_platform_mentions = global_mention.platform_mentions
+                mention_id = global_mention.get_platform_id_by_name('discord')
 
-                    ## For each platform mention
-                    for mention in global_mention_platform_mentions:
-                        
-                        ## Look for platform mention that matches this platform
-                        if mention[0] == "discord":
-                            
-                            ## Update Post Content
-                            post_content = post_content.replace(f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}", f"<@&{mention[1]}>")
+                text_to_replace = f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}"
 
-                            ## Update Mentions Dictionary
-                            mentions_dict['users'].remove(postmention)
-                            mentions_dict['users'].append(mention[1])
+                ## Update Post Content
+                post_content = post_content.replace(text_to_replace, f"<@&{mention_id}>")
 
-                            break
-
-                ## No global mention found, assume it's a local ID
-                else:
-                    ## Replace 
-                    post_content = post_content.replace(f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}", f"<@&{postmention}>")
-                    continue
-            else:
-
-                ## Replace 
-                post_content = post_content.replace(f"{settings.mention_tag_start}{postmention}{settings.mention_tag_end}", f"<@&{postmention}>")
-                continue
+                ## Update Mentions Dictionary
+                working_mentions_dict['users'].append(mention_id)
 
         ## Return updated post content, updated mentions list
-        return [post_content, mentions_dict]
+        return [post_content, working_mentions_dict]
 
         
+
     ########## PUBLISH POST
     #####
     def publish_post(self, post_object):
@@ -436,8 +419,8 @@ class DiscordAccount(Account):
         locations_to_post = post_object.get_locations_for_account(self.data['name']) 
 
         ## Initialize Post Log
-        successful_posts = []
         all_posts_published = False
+        published_reference = None
         
         ## Post to all discord webhook locations
         for location in locations_to_post:
@@ -467,7 +450,6 @@ class DiscordAccount(Account):
                 ## Log Updated Content
                 loc_data['content'] = updated_post_content
                 loc_data['allowed_mentions'] = updated_mentions
-
             
             ## Intialize the Webhook
             webhook = DiscordWebhook(**loc_data)
@@ -485,17 +467,28 @@ class DiscordAccount(Account):
             ## Publish Webhook
             r = webhook.execute()
 
+            ## Data
+            was_published = False
+            response_code = 0
+
             ## Validate & Log
-            if r:
-                response_code = re.sub("[^0-9^.]", "", str(r))
-                if response_code == "200" or response_code == "204":
-                    published_reference = json.loads(r.content)
-                    successful_posts.append(published_reference)
-                    #published_reference['id'] # Provides post ID
-                    #published_reference['webhook_id']
+            if r != None:
+
+                ## Get Response
+                response_code = int(re.sub("[^0-9^.]", "", str(r)))
+
+                ## Determine Success
+                was_published = True if response_code == 200 or response_code == 204 else False
+ 
+            ## Analyse Results
+            if was_published == True:
+                published_reference = json.loads(r.content)
+                print(f"Published Post @ id {published_reference['id']}")
+            else:
+                print(f"Webhook failed to post. Response Code <<{response_code}>>")
 
         ## Return
-        return successful_posts
+        return published_reference
 
     
 
