@@ -10,7 +10,7 @@
 
 
 from time import sleep
-from resources.config import server_settings
+from resources.config import settings_core
 from resources.server import mm_server
 
 
@@ -24,7 +24,7 @@ from resources.server import mm_server
 # -----------------------------------------------------------------------                         
 
 
-settings = server_settings()
+settings = settings_core()
 server = mm_server()
 
 

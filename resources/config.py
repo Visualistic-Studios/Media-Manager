@@ -68,6 +68,9 @@ class settings_core:
         self.scheduled_posts_file_location_full = current_path + self.scheduled_posts_file # This needs to be changed for S3 support
         self.uploaded_media_dir = self.get_setting_value("storage","encrypted_uploaded_media_dir")
         self.full_uploaded_media_dir = self.saved_path + self.uploaded_media_dir
+        
+        
+
 
         ##### ENCRYPTION
         self.key_location = self.get_setting_value("encryption","hidden_key_location")
@@ -108,6 +111,9 @@ class settings_core:
                 self.media_accounts = None
 
             self.supported_media_platforms = self.get_setting_value("accounts","encrypted_supported_media_platforms").split(",")
+            
+            ##### SERVER
+            self.processing_delay_in_seconds = int(self.get_setting_value("server",setting="encrypted_processing_delay_in_seconds", auto_decrypt=True))
             
             ##### S3 CREDENTIALS
             self.s3_access = self.get_setting_value(category="accounts", setting="encrypted_s3_access", deny_plaintext_setting=True)
@@ -362,12 +368,12 @@ class settings_core:
         
         return accounts
 
-
-
-class server_settings:
-    
-    def __init__(self):
-
-        self.processing_delay_in_seconds = int(cfg.get("server","encrypted_processing_delay_in_seconds"))
-
-
+#
+#
+#class server_settings:
+#    
+#    def __init__(self):
+#
+#        
+#
+#
