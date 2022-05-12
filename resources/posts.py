@@ -457,7 +457,7 @@ class post:
 
                 ## If you find a match in the file, remove it
                 if line_clean_title == self.title and line_clean_date == self.date_to_post and line_clean_time == self.time_to_post: # | This is temporary. Posts need a new data element; ID
-                    print('removing line: ', line)
+                    #print('removing line: ', line)
                     lines.remove(line)
                     break
                 else:
