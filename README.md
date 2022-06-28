@@ -3,8 +3,6 @@ Management Platform for Social Media Post Scheduling & Analytics written in Pyth
 
 A project by and for the Community. We strive to create a powerful tool that can be used by hobbyists and commercial projects alike to Manage their Social Media accounts without having to pay ridiculous prices. One or more users can schedule posts, see scheduled posts, look at post analytics for past posts, & more though a simple UI. 
 
-[![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url=https://gist.githubusercontent.com/VisualisticStudios/bba7c00b2ff7ba43fc835f9e6b008ca8/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge)
-
 # Preview
 
 <img src="wiki/img/Media-Manager.png"></img>
