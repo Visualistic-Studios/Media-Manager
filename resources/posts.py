@@ -485,31 +485,6 @@ class post:
 
 
 
-    ########## PUBLISH
-    #####
-    def publish(self):
-        """
-        Publishes the post to the desired social media
-        """
-        try:
-
-            ## TODO: Actually publish this to the social media here. Currently just saves to the published file
-            was_published = True ## HERE
-            was_saved_as_published = self.save_as_published()
-            
-            if was_published and was_saved_as_published:
-                self.remove_from_scheduled()
-                print('Post published')
-                return True
-            else:
-                print('Post not published')
-                return False
-            
-        except Exception as e:
-            print("Exception while running publish: ", e)
-            return None
-
-
     ########## GET SOCIAL MEDIA UNIQUE NAMES
     #####
     def get_social_media_unique_names(self):
@@ -528,7 +503,13 @@ class post:
             return None
 
 
-    ## isn't currently used by anything? Can't remember the purpose.. Need to comment better
+
+
+
+
+## The following four functions need to be consolidated. 
+
+
     def get_posting_locations(self):
         """
         Returns the locations to post to. 
@@ -544,6 +525,8 @@ class post:
         except Exception as e:
             print("Exception while running get posting locations: ", e)
             return None
+
+
 
 
         
@@ -570,6 +553,50 @@ class post:
 
 
 
+    ########## GET LOCATION DATA FOR ACCOUNT
+    #####
+    def get_location_data_for_account(self, account_name):
+        print('getting loc data')
+
+        ## Initialize
+        locs = self.get_locations_for_account(account_name)
+        return_locs = []
+
+        ## For each location
+        for loc in locs:
+            
+            ## Remove name and splitter
+            loc_list = loc.split("://")
+            print(loc_list)
+            del loc_list[0]
+
+            final_string = ""
+
+            ## Rejoin list
+            for lo in loc_list:
+                final_string = final_string + lo
+            
+            ## Append final string
+            return_locs.append(final_string)
+            
+        ## Return final
+        return return_locs
+
+
+
+    ########## GET URL FROM POST LOCATION
+    #####
+    def get_url_from_post_location(self, location):
+        """
+        Gets the url from a post location
+        """
+
+        split_loc = location.split("://")
+
+        return split_loc[1] + "://" + split_loc[2]
+
+
+
     ########## GET NUM SCHEDULED POST LOCATIONS
     #####
     def get_num_scheduled_post_locations(self):
@@ -591,14 +618,3 @@ class post:
         return len(self.get_locations_for_account(account_name))
 
 
-
-    ########## GET URL FROM POST LOCATION
-    #####
-    def get_url_from_post_location(self, location):
-        """
-        Gets the url from a post location
-        """
-
-        split_loc = location.split("://")
-
-        return split_loc[1] + "://" + split_loc[2]
