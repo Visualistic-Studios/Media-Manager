@@ -78,7 +78,9 @@ class Account:
                 data_loaded = True
                 break
         
-        self.posting_locations = self.data['posting_locations'].split("|_|")
+        posting_locations = self.data['posting_locations']
+        
+        self.posting_locations = posting_locations.split("|_|") if posting_locations != None else None
     
         return data_loaded
         
