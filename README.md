@@ -1,7 +1,8 @@
 
+<a href="https://github.com/Visualistic-Studios/Media-Manager/wiki/">
 <p class="aligncenter">
 <img src="https://raw.githubusercontent.com/Visualistic-Studios/Media-Manager/release/wiki/img/Media-Manager-Title%20-%20Transparent%20-%20Partial.png"></img>
-</p>
+</p></a>
 
 ## 🔍 Overview 
 > Schedule, Review, & Analyze your Social Media posts with unrestricted freedom; regardless of platform. Features like Global [Mentions](https://github.com/Visualistic-Studios/Media-Manager/issues/60) and [Locations](https://github.com/Visualistic-Studios/Media-Manager/issues/77), Post [Formatting Rules](https://github.com/Visualistic-Studios/Media-Manager/issues/37), and [more](https://github.com/Visualistic-Studios/Media-Manager/projects/1) to make cross-platform marketing manageable. 
