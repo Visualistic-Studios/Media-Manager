@@ -426,6 +426,7 @@ class DiscordAccount(Account):
         ## Initialize Post Log
         all_posts_published = False
         published_reference = None
+        was_published = False
         
         ## Post to all discord webhook locations
         for location in locations_to_post:
@@ -473,7 +474,6 @@ class DiscordAccount(Account):
             r = webhook.execute()
 
             ## Data
-            was_published = False
             response_code = 0
 
             ## Validate & Log
