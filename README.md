@@ -4,6 +4,20 @@
 <img src="https://raw.githubusercontent.com/Visualistic-Studios/Media-Manager/release/wiki/img/Media-Manager-Title%20-%20Transparent%20-%20Partial.png"></img>
 </p></a>
 
+
+<p align='center'>
+     <a href="https://github.com/Visualistic-Studios/Media-Manager/blob/release/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Visualistic-Studios/Media-Manager?style=for-the-badge"></a>     
+</p>
+
+<p align='center'>
+      <img alt="GitHub commits since latest release (by date including pre-releases)" src="https://img.shields.io/github/commits-since/Visualistic-Studios/Media-Manager/latest/release?include_prereleases&style=for-the-badge">
+      <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/Visualistic-Studios/Media-Manager?style=for-the-badge">
+      <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/Visualistic-Studios/Media-Manager?style=for-the-badge">
+      <a href="https://github.com/Visualistic-Studios/Media-Manager/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Visualistic-Studios/Media-Manager?style=for-the-badge"></a>
+
+</p>
+
+
 ## 🔍 Overview 
 > Schedule, Review, & Analyze your Social Media posts with unrestricted freedom; regardless of platform. Features like Global [Mentions](https://github.com/Visualistic-Studios/Media-Manager/issues/60) and [Locations](https://github.com/Visualistic-Studios/Media-Manager/issues/77), Post [Formatting Rules](https://github.com/Visualistic-Studios/Media-Manager/issues/37), and [more](https://github.com/Visualistic-Studios/Media-Manager/projects/1) to make cross-platform marketing manageable. 
    > * Self-Hostable, Unrestricted, FREE
