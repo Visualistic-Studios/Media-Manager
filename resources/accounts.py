@@ -78,7 +78,9 @@ class Account:
                 data_loaded = True
                 break
         
-        self.posting_locations = self.data['posting_locations'].split("|_|")
+        posting_locations = self.data['posting_locations']
+        
+        self.posting_locations = posting_locations.split("|_|") if posting_locations != None else None
     
         return data_loaded
         
@@ -200,7 +202,7 @@ class Account:
         """
         Creates a connection to the social media provider.
         """
-        raise NotImplementedError
+        return True
 
 
 
@@ -210,7 +212,7 @@ class Account:
         """
         Disconnects from the social media provider.
         """
-        raise NotImplementedError
+        return True
 
 
 
@@ -265,7 +267,30 @@ class Account:
         """
         Creates a post from post object.
         """
-        raise NotImplementedError
+        
+        published_posts = []
+        errors = []
+
+        ##### FOR EACH POST
+        for post in post_objects:
+
+            ## Publish
+            r = self.publish_post(post)
+
+            ## Validate Publishing
+            if len(r) > post.get_num_scheduled_post_locations_for_account():
+
+                ## Log
+                published_posts.append(post)
+
+            ## Debug
+            else:
+                errors.append(r.content)
+                continue
+
+        ## If all have been published return true, otherwise return false
+        return published_posts
+        
 
 
 
@@ -286,7 +311,7 @@ class Account:
         """
         Checks if the account is ready to be used.
         """
-        raise NotImplementedError
+        return True
 
 
 
@@ -300,7 +325,8 @@ class DiscordAccount(Account):
 
     Requires a unique name for an account that's already been registered.
     
-    Child class of Account. Can only be used after Account is created / registered."""
+    Child class of Account. Can only be used after Account is created / registered.
+    """
 
 
 
@@ -311,30 +337,9 @@ class DiscordAccount(Account):
 
         ## Call Parent Init
         super().__init__(name=account_unique_name)
-
+        
+        ## Load data
         self.load_data()
-
-
-
-    ########## CONNECT
-    #####
-    def connect(self):
-        """
-        Doesn't do anything in this case, Discord accounts use a simple webhook. 
-        """
-
-        return True
-
-
-
-    ########## DISCONNECT
-    #####
-    def disconnect(self):
-        """
-        Doesn't do anything in this case, Discord accounts use a simple webhook. 
-        """
-
-        return True
 
 
 
@@ -421,6 +426,7 @@ class DiscordAccount(Account):
         ## Initialize Post Log
         all_posts_published = False
         published_reference = None
+        was_published = False
         
         ## Post to all discord webhook locations
         for location in locations_to_post:
@@ -468,7 +474,6 @@ class DiscordAccount(Account):
             r = webhook.execute()
 
             ## Data
-            was_published = False
             response_code = 0
 
             ## Validate & Log
@@ -480,70 +485,233 @@ class DiscordAccount(Account):
                 ## Determine Success
                 was_published = True if response_code == 200 or response_code == 204 else False
  
-            ## Analyse Results
+            ## Success
             if was_published == True:
+                
+                ## Publish Data
                 published_reference = json.loads(r.content)
-                print(f"Published Post @ id {published_reference['id']}")
+                published_id = published_reference['id']
+
+                # Debug
+                print(f"Published Post @ id {published_id}")
+
+            ## failed
             else:
                 print(f"Webhook failed to post. Response Code <<{response_code}>>")
 
-        ## Return
-        return published_reference
+        final_data = {
+            'ok': was_published,
+            'id': published_id,
+        }
 
+        ## Return
+        return final_data
+
+
+
+    ########## DELETE POST
+    #####
+    def delete_posts(self, post_ids):
+        """
+        Deletes a number of posts based on IDs
+        """
+        pass
+
+
+
+    ########## RETREIVE POST ANALYTICS
+    #####
+    def get_posts_analytics(self, post_ids):
+        """
+        Retreives analytics data for a post
+        """
+        
+        pass
+
+
+
+
+
+########## TELEGRAM
+#####
+
+class TelegramAccount(Account):
+    """
+    Class for Telegram Account with connection, posting, and more functionality.
+
+    Requires a unique name for an account that's already been registered.
+    
+    Child class of Account. Can only be used after Account is created / registered.
+    """
+
+
+    ########## INIT
+    #####
+    def __init__(self, account_unique_name):
+
+        ## Call Parent Init
+        super().__init__(name=account_unique_name)
+
+        ## Load data
+        self.load_data()    
+        
+
+
+    ########## TG REQUEST
+    #####
+    def tg_request(self, endpoint, arguments={}):
+        
+        """
+        Uses requests to interact with Telegram.
+        
+        Endpoints can be found here: https://core.telegram.org/bots/api
+
+        Arguments are optional & should follow this format: {"ARG_Name":ARG_Data}
+        """
+        
+        ## Retreive Bot Token
+        bot_token = self.data['key']
+        
+        ## Build Initial Arguments String
+        request_string = f"https://api.telegram.org/bot{bot_token}/{endpoint}"
+        
+        ## Add arguments if they exist
+        if len(arguments) > 0:
+            for index, argument in enumerate(arguments.keys()):
+                
+                ## Initial '?'
+                if index == 0:
+                    request_string = f"{request_string}?{argument}={str(arguments[argument])}"
+                
+                ## Sequential '&'
+                else:
+                    request_string = f"{request_string}&{argument}={str(arguments[argument])}"
+        
+        ## Send Request
+        result = requests.get(request_string)
+    
+        ## Return result
+        return result
     
 
-    ########## CREATE POST
+
+    ########## FORMAT POST DATA
     #####
-    def publish_posts(self, post_objects):
+    def format_post_data(self, post_object):
         """
-        Creates a post from post object.
+        Formats a post in a request format for a Telegram webhook
         """
 
-        published_posts = []
-        errors = []
-
-        ##### FOR EACH POST
-        for post in post_objects:
-
-            r = self.publish_post(post)
-
-            ## If all attempted post locations are accounted for
-            if len(r) > post.get_num_scheduled_post_locations_for_account():
-                # for link in r.['successful_posts']:
-                    # post.add_published_link(link)
-
-                ## Log post
-                published_posts.append(post)
-            else:
-                errors.append(r.content)
-                continue
-
-        ## If all have been published return true, otherwise return false
-        return published_posts
+        return post_object.description
 
 
 
-    ##### DELETE POST
+    ########## BUILD MENTIONS LIST
+    #####
+    def build_mentions_list(self, post_content):
+        """
+        Used to build a list of mentions.
+        """
+
+        return None
+
+
+
+    ########## REPLACE MENTIONS
+    #####
+    def replace_mentions(self, post_content, mentions_dict):
+        """
+        Replaces mentions in a post with the actual mention string.
+        """
+        
+        return None
+
+
+
+    ########## PUBLISH POST
+    #####
+    def publish_post(self, post_object):
+        """
+        Publishes a post from post object
+
+        - Gets all data for post
+
+        - Formats the data properly for this platform
+
+        - Replaces mention IDs with their associated mention
+
+        - Publishes the post
+        """
+
+        ## Get all the post locations that match this telegram account name
+        locations_to_post = post_object.get_location_data_for_account(self.data['name']) 
+
+
+        ## Initialize Variables
+        all_posts_published = False
+        published_reference = None
+        was_published = False
+        response_code = 0
+        valid_result = False
+        final_data = {'ok':"",'id':""}
+
+        
+        ## Post to all locations
+        for location in locations_to_post:
+            
+            ###### FORMATTING
+            # Format Post Data
+            content = self.format_post_data(post_object) # Will eventually be dependant on location
+
+
+            ##### PUBLISH
+            r = self.tg_request("sendMessage", {"chat_id":location,"text":content})
+
+
+            ##### ANALYSE
+            ## Validate & Log
+            if r != None:
+                if r.ok:
+                    # telegram logs @ chat_id/message_id
+
+                    ## Load data
+                    published_reference = json.loads(r.content)
+                    message_id = published_reference['result']['message_id']
+                    channel_id = published_reference['result']['chat']['id']
+                    final_id = str(channel_id) + "://" + str(message_id)
+                    
+                    ## Format
+                    final_data = {
+                        'ok': True,
+                        'id': final_id,
+                    }
+                    
+                    ## Debug
+                    print(f"Published Post @ id {final_id}")
+
+                else:
+                    print(f"Webhook failed to post. Response Code <<{response_code}>>")
+
+
+        ## Return 
+        return final_data
+
+
+
+    ########## DELETE POST
+    #####
     def delete_posts(self, post_ids):
-        # do whatever discord needs to to delete the post
+        """
+        Deletes a post on the platform.
+        """
         pass
 
 
-    ##### RETREIVE POST ANALYTICS
+
+    ########## RETREIVE POST ANALYTICS
+    #####
     def get_posts_analytics(self, post_ids):
-        # do whatever discord needs to to get the post analytics
+        """
+        Retreives analytics data for a post
+        """
         pass
-
-
-    ##### IS READY
-    def is_ready(self):
-        return True
-
-
-
-
-
-
-
-
-

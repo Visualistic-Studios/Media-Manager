@@ -10,7 +10,7 @@
 # -----------------------------------------------------------------------     
 
 
-from resources.accounts import DiscordAccount
+from resources.accounts import DiscordAccount, TelegramAccount
 from resources.config import settings_core
 from resources.database import Storage
 
@@ -68,20 +68,20 @@ class ContentManager:
 
                     ## Validate Published Post
                     if published_post:
+                        if published_post['ok']:
+                            
+                            #print('post return for success was:')
+                            post_id = published_post['id']
 
-                        #print('post return for success was:')
-                        post_id = published_post['id']
+                            ## Save as Published
+                            was_saved_as_published = post.save_as_published()
 
-                        ## Save as Published
-                        was_saved_as_published = post.save_as_published()
+                            ## Remove from Scheduled
+                            was_removed_from_scheduled = post.remove_from_scheduled()
 
-                        ## Remove from Scheduled
-                        was_removed_from_scheduled = post.remove_from_scheduled()
-
-                        ## Log if Successful
-                        if was_saved_as_published == True & was_removed_from_scheduled == True:
-                            published_posts.append(post)
-
+                            ## Log if Successful
+                            if was_saved_as_published == True & was_removed_from_scheduled == True:
+                                published_posts.append(post)
 
 
     ########## GET UNIQUE ACCOUNT NAMES FROM POST OBJECTS
@@ -135,6 +135,14 @@ class ContentManager:
                 account_obj = DiscordAccount(account['name'])
                 if account_obj:
                     connected_accounts[account['name']] = account_obj
+
+            ##### Telegram
+            if platform=='telegram':
+                account_obj = TelegramAccount(account['name'])
+                if account_obj:
+                    connected_accounts[account['name']] = account_obj
+
+
             else:
                 pass
 
