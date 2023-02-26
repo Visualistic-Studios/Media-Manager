@@ -3,5 +3,5 @@ APScheduler==3.8.1
 cryptography==39.0.1
 discord.py==1.7.3
 discord-webhook==0.15.0
-Pillow==9.2.0
+Pillow==9.3.0
 s3fs==2022.1.0
