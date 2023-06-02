@@ -1,6 +1,6 @@
 streamlit==1.9.0
 APScheduler==3.8.1
-cryptography==39.0.1
+cryptography==41.0.0
 discord.py==1.7.3
 discord-webhook==0.15.0
 Pillow==9.3.0
